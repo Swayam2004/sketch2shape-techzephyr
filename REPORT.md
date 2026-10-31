@@ -34,6 +34,8 @@ Silhouette IoU against the cleaned sketch mask, time per model, peak memory, fai
 
 Draft facts
 
+- 31 Oct (Udit) Silhouette IoU renders the mesh outline orthographically without OpenGL (one `fillConvexPoly` per triangle, because overlapping front and back faces cancel under even-odd filling). Mesh and sketch mask are both cropped to their bounding box, so the score ignores scale and position. Unit tests: a unit cube against a square mask scores above 0.97, a sphere beats a box against a disc.
+
 ## Results and analysis
 
 Draft facts
