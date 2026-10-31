@@ -21,3 +21,6 @@ outputs/
 
 # per-person agent settings
 .claude/settings.local.json
+
+# downloaded research PDFs, copyrighted and 200+ MB
+papers/
