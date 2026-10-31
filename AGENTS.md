@@ -32,7 +32,7 @@ A polished UI does not replace a working, reproducible pipeline. The export must
 | Swayam (integrator) | Linux, GTX 1650 Ti | `src/sketch2shape/reconstruct/`, `src/sketch2shape/export/`, `src/sketch2shape/api/`, `infra/` |
 | Disha | MacBook Air M2 | `src/sketch2shape/app/`, `README.md`, `docs/`, `AI_USAGE.md`, `samples/sketches/` |
 | Udit | Windows, AMD iGPU | `src/sketch2shape/preprocess/`, `src/sketch2shape/eval/`, `scripts/`, Windows and CPU checks |
-| Unassigned | any | `blender_addon/` (see `STATUS.md`) |
+| Udit (after the eval harness, from about 00:00) | Windows | `blender_addon/`. Disha tests it on her Mac and documents it. |
 
 Shared files (`pyproject.toml`, `AGENTS.md`, `CONTEXT.md`, `PLAN.md`) need a one line heads-up in `STATUS.md` before you edit them.
 
@@ -58,6 +58,8 @@ Both install nothing silently. They check for `git` and `uv`, create the environ
 - Pin `rembg` to the `u2net` or `isnet-general-use` model. Its newer default carries a licence that needs a paid agreement.
 - Avoid `torchmcubes`. Use scikit-image marching cubes.
 - Comments explain why, not what.
+- No pre-existing code. The rulebook bans reusing earlier work. Do not paste from your old projects or notebooks. Open-source libraries, public models and vendored upstream code are fine when listed in the README with source and licence.
+- Hosted requests must finish in under 100 seconds or use job submit and polling. The RunPod proxy cuts longer calls with a 524 error.
 
 ## Git rules
 
@@ -68,6 +70,26 @@ Both install nothing silently. They check for `git` and `uv`, create the environ
 - Do not add `Co-Authored-By` trailers. AI use is disclosed in `AI_USAGE.md`.
 - `main` must always pass `uv sync` and `uv run pytest`.
 - `.notes/` is private and gitignored. Do not put anything the team needs there.
+- Pull requests into `main` are required. Swayam reviews and merges. Docs-only PRs inside your own directory may be self-merged.
+
+### When the human says "ship it"
+
+Not everyone on the team uses git daily, so the agent runs the whole sequence.
+
+1. If on `main`, create a branch `feat/<name>-<short-description>`.
+2. Run `git status`. Make sure no `.env`, weights, outputs or `.notes/` files are staged.
+3. Commit with a conventional message.
+4. `git fetch origin` then `git rebase origin/main`. If conflicts appear, stop and show the human the files. Do not guess.
+5. `git push -u origin HEAD`.
+6. `gh pr create --fill` and give the human the PR link.
+
+Never commit straight to `main`. Never force-push `main`.
+
+## Deliverables the rulebook asks for
+
+Code and documentation in the GitHub repo, the dataset list with sources (our inputs are pretrained models and our own sketches, say so), a report in PDF or Markdown with these sections, slides, and a demo video.
+
+Report sections. Problem statement, solution approach, datasets used, model architecture, evaluation metrics, results and analysis, real-world application. Keep `REPORT.md` current. Disha owns it.
 
 ## Secrets
 

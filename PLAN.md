@@ -38,9 +38,9 @@ Each stage is one function with a typed input and output, so a model swap never 
 
 ## Compute
 
-- Dev GPU now. One shared pod (RTX 4090 or L4 class) paid with Udit's international card, around 2,050 INR for 24 hours in the research estimate. Everyone connects to it.
-- AWS credits (about $100 per person, 136 to 146 days left). Usable for GPU only after two steps. Upgrade the account from the Free plan to the Paid plan, since third-party reports say the Free plan limits EC2 to small instances. Credits carry over on upgrade per AWS. Then raise the "Running On-Demand G and VT instances" quota, which starts at 0 for new accounts. AWS publishes no approval time, so ask now and treat AWS as a bonus.
-- Hosted demo. Chosen after the dev box works. Candidates are a GPU VM with a public port (RunPod or AWS) or Modal. Decide with the numbers from the dev box.
+- Dev GPU now. One shared RunPod Secure Cloud pod, L4 first (about 1,300 INR for 24 hours, 4090 about 1,900), with a 50 GB network volume. Udit's international card pays. Everyone connects over SSH. Steps in `docs/guides/runpod-dev-gpu.md`.
+- AWS credits (about $100 per person, 136 to 146 days left). Optional and Swayam-only, for cheap demo hosting. Needs a Paid plan upgrade and a G-instance quota request. Steps in `docs/guides/aws-gpu-optional.md`. Stop after 30 minutes if it stalls.
+- Hosted demo priority. AWS GPU VM on credits, then Modal, then a RunPod pod during judging windows. The RunPod proxy cuts requests at 100 seconds, so the API uses job polling.
 - Extra spend cap of 1,500 to 2,000 INR combined.
 - Research behind this is in `docs/research/`. All claims there are agent-reported unless marked verified.
 
@@ -69,6 +69,20 @@ The Blender add-on is the second angle. Only start it when the core path, UI and
 | 10:30 | Submission package complete. Repo goes public, sample `.glb` and inputs included |
 | 11:00 | Submit. One hour of slack |
 
+## Deliverables checklist
+
+From the rulebook (sections 6 and 9) and the problem statement. See D12 and D13 in `CONTEXT.md`.
+
+- [ ] GitHub repo, public before submission, with source, README and setup instructions
+- [ ] `REPORT.md` or PDF with problem, approach, datasets, architecture, metrics, results and analysis, real-world application
+- [ ] Dataset and model list with sources and licences (we use pretrained models and our own sketches)
+- [ ] At least one `.glb` or `.obj` plus example inputs and outputs in `samples/`
+- [ ] Time to generate a model, hardware used, limitations, in the README
+- [ ] Slides (rulebook asks for them even though judging is offline, confirm with organisers)
+- [ ] Demo video
+- [ ] Hosted demo link and a throwaway access code in the submission
+- [ ] `AI_USAGE.md` complete
+
 ## Documentation owed from hour 1
 
 `README.md` (objective, architecture, dependencies, install, run, model choices, inputs and outputs, time per model, hardware, limitations, troubleshooting, third-party table), `EXPERIMENTS.md`, `AI_USAGE.md`, `STATUS.md`.
@@ -82,7 +96,6 @@ The Blender add-on is the second angle. Only start it when the core path, UI and
 
 ## Open questions
 
-1. Organiser reply on submission method, demo video, judging dates, judge GPU. Message drafted.
-2. Which person owns the Blender add-on.
-3. Teammates' GitHub usernames to add as collaborators.
-4. Which host serves the public demo.
+1. Organiser reply on submission method, slides and video, credentials, judging dates, judge GPU. Message drafted, not yet sent.
+2. Model choice, see `docs/research/model-options.md`.
+3. Which host serves the public demo. Priority order is set, final pick follows the first benchmark.

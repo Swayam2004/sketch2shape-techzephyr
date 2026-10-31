@@ -43,10 +43,12 @@ Open `claude` in the repo folder. Project skills in `.claude/skills/` load by th
 ## 5. Work loop
 
 1. Update your row in `STATUS.md`.
-2. Branch `feat/<yourname>-<thing>` from `main`.
-3. Small commits. Conventional messages.
+2. Ask your agent to do the work.
+3. When you are happy, tell your agent `ship it`. It makes a branch, commits, rebases on `main`, pushes and opens a pull request. You never need to type git commands. Send Swayam the PR link.
 4. Log every AI use in `AI_USAGE.md`. Log every model run in `EXPERIMENTS.md`.
-5. Rebase on `main`, push, open a PR to Swayam (integrator).
+5. Swayam merges. Direct pushes to `main` are blocked on purpose.
+
+For the shared GPU, see `docs/guides/runpod-dev-gpu.md`. First generate an SSH key (`ssh-keygen -t ed25519`) and send Udit the `.pub` file.
 
 ## 6. Do not
 

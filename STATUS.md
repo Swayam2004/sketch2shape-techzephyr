@@ -4,13 +4,13 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 
 | Person | Doing now | Files or dirs touched | Blocked on | Updated |
 | --- | --- | --- | --- | --- |
-| Swayam | Cloud GPU access, GitHub repo, AWS quota and plan upgrade | `infra/`, repo settings | Organiser reply, quota approval | Sat 31 Oct 14:30 |
-| Disha | Clone repo, run setup, draw the 12 test sketches | `samples/sketches/` | Repo access | - |
-| Udit | Clone repo, run setup on native Windows, set up WSL2, ask for the shared GPU box | `scripts/` | Repo access, card for GPU box | - |
+| Swayam | Model decision, AWS credits check (optional), merging PRs | `infra/`, repo settings | Model choice, organiser reply | Sat 31 Oct 15:30 |
+| Disha (`sp4cefruity`) | Clone repo, run setup, send Udit an SSH public key, draw the 12 test sketches | `samples/sketches/` | Nothing | - |
+| Udit (`ZenMaster192`) | Create the RunPod pod from `docs/guides/runpod-dev-gpu.md`, set up WSL2, run setup on native Windows | `scripts/`, RunPod account | Needs everyone's SSH public keys | - |
 
 ## Shared resources
 
 | Resource | Owner | How to get in |
 | --- | --- | --- |
-| Dev GPU box | not created yet | TBD, will be added here |
-| Hosted demo URL | not created yet | TBD |
+| Dev GPU pod `s2s-dev` | Udit | Not created yet. See `docs/guides/runpod-dev-gpu.md`. Pod IP and port will be posted here. |
+| Hosted demo URL | Swayam | Not created yet |
