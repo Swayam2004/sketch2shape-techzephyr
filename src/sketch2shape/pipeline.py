@@ -19,7 +19,6 @@ from sketch2shape.cutout import remove_background
 from sketch2shape.export import finalize_mesh, save_mesh, validate_mesh
 from sketch2shape.reconstruct import image_to_mesh
 from sketch2shape.types import (
-    IMAGE_SIZE,
     Device,
     GenerationRequest,
     GenerationResult,
@@ -37,41 +36,20 @@ CPU_WARNING = (
 
 @dataclass(frozen=True)
 class Stages:
-    """The stages owned by other people, injectable so tests and the stub can replace them."""
+    """The stages owned by other people, injectable so tests can replace them."""
 
     prepare: Callable[[Image.Image], PreparedSketch]
     generate: Callable[[PreparedSketch, str | None, int, Device], Image.Image]
     iou: Callable[[trimesh.Trimesh, np.ndarray], float] | None = None
 
 
-def _stub_prepare(image: Image.Image) -> PreparedSketch:
-    rgb = image.convert("RGB").resize((IMAGE_SIZE, IMAGE_SIZE))
-    mask = np.asarray(rgb.convert("L")) < 128
-    scribble = Image.fromarray((mask * 255).astype(np.uint8), mode="L")
-    return PreparedSketch(rgb=rgb, mask=mask, scribble=scribble)
+def default_stages() -> Stages:
+    """Udit's real preprocess, generate and IoU stages. Imported late so tests skip diffusers."""
+    from sketch2shape.eval import silhouette_iou
+    from sketch2shape.generate import sketch_to_image
+    from sketch2shape.preprocess import prepare_sketch
 
-
-def _stub_generate(
-    sketch: PreparedSketch, prompt: str | None, seed: int, device: Device
-) -> Image.Image:
-    return sketch.rgb
-
-
-def default_stages() -> tuple[Stages, list[str]]:
-    """Use Udit's real stages when they are importable, else a pass-through stub.
-
-    The stub treats the input as an already finished object photo, which lets the rest of the
-    pipeline run end to end before the preprocess and generate stages land.
-    """
-    try:
-        from sketch2shape.eval import silhouette_iou
-        from sketch2shape.generate import sketch_to_image
-        from sketch2shape.preprocess import prepare_sketch
-    except ImportError:
-        warning = "Preprocess and generate stages are missing, using the pass-through stub."
-        logger.warning(warning)
-        return Stages(_stub_prepare, _stub_generate), [warning]
-    return Stages(prepare_sketch, sketch_to_image, silhouette_iou), []
+    return Stages(prepare_sketch, sketch_to_image, silhouette_iou)
 
 
 def select_device(requested: str | None = None) -> Device:
@@ -120,8 +98,7 @@ def run(
     device = device or select_device()
     warnings: list[str] = []
     if stages is None:
-        stages, stage_warnings = default_stages()
-        warnings += stage_warnings
+        stages = default_stages()
     if device == "cpu":
         warnings.append(CPU_WARNING)
     stem = stem or f"mesh_seed{request.seed}"

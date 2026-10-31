@@ -23,9 +23,19 @@ def main(argv: list[str] | None = None) -> int:
     gen.add_argument("--seed", type=int, default=0)
     gen.add_argument("--out", type=Path, default=Path("outputs"))
     gen.add_argument("--device", choices=["cuda", "cpu"], default=None)
+    serve = sub.add_parser("serve", help="Run the HTTP API from docs/api.md")
+    serve.add_argument("--host", default="0.0.0.0")
+    serve.add_argument("--port", type=int, default=7860)
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
+    if args.command == "serve":
+        import uvicorn
+
+        uvicorn.run(
+            "sketch2shape.api.server:app_factory", factory=True, host=args.host, port=args.port
+        )
+        return 0
     if not args.sketch.is_file():
         parser.error(f"{args.sketch} is not a file.")
     request = GenerationRequest(Image.open(args.sketch), args.prompt, args.seed)
