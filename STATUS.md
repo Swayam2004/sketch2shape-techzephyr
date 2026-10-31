@@ -6,7 +6,7 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 | --- | --- | --- | --- | --- |
 | Swayam | S2 TripoSR on CPU, kickoff PR | `reconstruct/`, `scripts/download_weights.py`, `pyproject.toml` | Nothing | Sat 31 Oct 16:00 |
 | Disha (`sp4cefruity`) | D0 SSH key, D1 twelve test sketches | `samples/sketches/` | Nothing | - |
-| Udit (`ZenMaster192`) | U0 RunPod pod, then U2 preprocessing | RunPod account, `preprocess/` | Needs everyone's SSH public keys | - |
+| Udit (`ZenMaster192`) | U2 preprocess, U3 generate code and U4 eval written, 28 tests green, not committed yet. U0 pod not started | `preprocess/`, `generate/`, `eval/`, `scripts/eval_testset.py`, `scripts/preprocess_check.py` | U0 needs everyone's SSH public keys. U3 needs `download_weights.py`. U4 needs `pipeline.run` and Disha's sketches | 31 Oct, after 16:30 |
 
 ## Shared resources
 
