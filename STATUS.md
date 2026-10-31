@@ -4,9 +4,9 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 
 | Person | Doing now | Files or dirs touched | Blocked on | Updated |
 | --- | --- | --- | --- | --- |
-| Swayam | Model decision, AWS credits check (optional), merging PRs | `infra/`, repo settings | Model choice, organiser reply | Sat 31 Oct 15:30 |
-| Disha (`sp4cefruity`) | Clone repo, run setup, send Udit an SSH public key, draw the 12 test sketches | `samples/sketches/` | Nothing | - |
-| Udit (`ZenMaster192`) | Create the RunPod pod from `docs/guides/runpod-dev-gpu.md`, set up WSL2, run setup on native Windows | `scripts/`, RunPod account | Needs everyone's SSH public keys | - |
+| Swayam | S2 TripoSR on CPU, kickoff PR | `reconstruct/`, `scripts/download_weights.py`, `pyproject.toml` | Nothing | Sat 31 Oct 16:00 |
+| Disha (`sp4cefruity`) | D0 SSH key, D1 twelve test sketches | `samples/sketches/` | Nothing | - |
+| Udit (`ZenMaster192`) | U0 RunPod pod, then U2 preprocessing | RunPod account, `preprocess/` | Needs everyone's SSH public keys | - |
 
 ## Shared resources
 
@@ -14,3 +14,9 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 | --- | --- | --- |
 | Dev GPU pod `s2s-dev` | Udit | Not created yet. See `docs/guides/runpod-dev-gpu.md`. Pod IP and port will be posted here. |
 | Hosted demo URL | Swayam | Not created yet |
+
+## Heads-ups on shared files
+
+Write one line here before you edit `pyproject.toml`, `uv.lock`, `AGENTS.md`, `CONTEXT.md`, `PLAN.md`, `src/sketch2shape/types.py` or `docs/api.md`.
+
+- 31 Oct 16:00 Swayam. Kickoff PR adds all dependencies in one go. If you need another package, tell Swayam instead of running `uv add`, so `uv.lock` does not conflict.
