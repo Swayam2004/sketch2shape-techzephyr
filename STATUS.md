@@ -6,7 +6,7 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 | --- | --- | --- | --- | --- |
 | Swayam | S6 done. Real pipeline ran twice on a RunPod GPU (IoU 0.953 and 0.943, EXPERIMENTS #8 and #9). Pod terminated, volume `s2s-weights` kept. Modal hosted demo dropped because the organisers accept localhost plus a 2 to 3 minute video. Next: wire best-of-N into `pipeline.py` once Udit sends the function, merge PRs | `weights.py`, `pipeline.py`, `api/`, `infra/` | Disha's 12 sketches, Udit's fp32 retry fix | Sun 1 Nov 03:45 |
 | Disha (`sp4cefruity`) | Sketches (in progress, by hand). README rewritten with no hosted path, dashboard polish chosen over a Gradio app (PR to Swayam for `api/static/index.html`), then REPORT prose, Blender check and video script | `README.md`, `docs/`, `api/static/index.html` (PR) | First real GLB from the pod, Udit's add-on zip | Sun 1 Nov 04:10 |
-| Udit (`ZenMaster192`) | U2 preprocess, U3 generate code and U4 eval written, 28 tests green, not committed yet. U0 pod not started | `preprocess/`, `generate/`, `eval/`, `scripts/eval_testset.py`, `scripts/preprocess_check.py` | U0 needs everyone's SSH public keys. U3 needs `download_weights.py`. U4 needs `pipeline.run` and Disha's sketches | 31 Oct, after 16:30 |
+| Udit (`ZenMaster192`) | Task A done in PR `feat/udit-generate-fp16-fix`: fp32 retry frees the fp16 pipeline, VAE kept in fp32, opt-in `S2S_OFFLOAD=1`. Verified on CPU only. Next: Task B best-of-N, Blender add-on, Windows CPU run | `generate/`, `tests/test_generate.py`, `EXPERIMENTS.md` | Swayam, a pod run for the fp16 VAE and offload checks (below). Disha's sketches | Sun 1 Nov 04:45 |
 
 ## Shared resources
 
@@ -25,3 +25,7 @@ Write one line here before you edit `pyproject.toml`, `uv.lock`, `AGENTS.md`, `C
 - 31 Oct 17:55 Swayam. Adding `papers/` to `.gitignore` so the research PDFs cannot be committed.
 - 1 Nov 04:10 Disha. `AGENTS.md` line 123 and `CONTEXT.md` (tier 1 hosted link, D2, D6, D15, D20) and `PLAN.md` still describe a hosted demo. Swayam, please update them, I did not touch the shared files. `scripts/setup.sh` line 28 also says "use the hosted demo" (Udit's directory).
 - 1 Nov 03:50 Swayam. Editing AGENTS.md (line 123), CONTEXT.md (glossary, D2, D3, D6, D7, D13, D15, D18, D20, new D25), PLAN.md (tiers, compute, timeline, checklist) and scripts/setup.sh to remove the hosted demo. Pull before you edit those.
+
+## Requests
+
+- 1 Nov 04:45 Udit to Swayam. I have no CUDA card. Please run the real sketch path on the pod and on your 1650 Ti, with `generate` from my PR branch `feat/udit-generate-fp16-fix`. Three runs, each logged as an EXPERIMENTS row with seconds and peak VRAM. 1) Default fp16 with the fp32 VAE. Is the black frame gone? 2) Same with `S2S_OFFLOAD=1`. 3) On the 1650 Ti, if the black frame stays, does the fp32 retry now fit in 4 GB? Also, `sketch_to_image` returns only an image, so its fp32 retry warning goes to the log and not to `PipelineResult.warnings`. Tell me if you want that surfaced.
