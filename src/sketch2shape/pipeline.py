@@ -85,7 +85,14 @@ def select_device(requested: str | None = None) -> Device:
 
 
 @contextmanager
-def _timed(timings: list[StageTiming], stage: str, device: Device) -> Iterator[None]:
+def _timed(
+    timings: list[StageTiming],
+    stage: str,
+    device: Device,
+    on_stage: Callable[[str], None] | None = None,
+) -> Iterator[None]:
+    if on_stage:
+        on_stage(stage)
     cuda = device == "cuda"
     if cuda:
         torch.cuda.reset_peak_memory_stats()
@@ -107,6 +114,7 @@ def run(
     out_dir: Path = Path("outputs"),
     stem: str | None = None,
     stages: Stages | None = None,
+    on_stage: Callable[[str], None] | None = None,
 ) -> GenerationResult:
     """Sketch (and optional prompt) in, validated `.glb` and `.obj` out."""
     device = device or select_device()
@@ -120,18 +128,18 @@ def run(
     timings: list[StageTiming] = []
     logger.info("pipeline start seed=%d device=%s prompt=%r", request.seed, device, request.prompt)
 
-    with _timed(timings, "preprocess", device):
+    with _timed(timings, "preprocess", device, on_stage):
         prepared = stages.prepare(request.sketch)
-    with _timed(timings, "generate", device):
+    with _timed(timings, "generate", device, on_stage):
         image = stages.generate(prepared, request.prompt, request.seed, device)
     out_dir.mkdir(parents=True, exist_ok=True)
     generated_path = out_dir / f"{stem}_generated.png"
     image.save(generated_path)
-    with _timed(timings, "cutout", device):
+    with _timed(timings, "cutout", device, on_stage):
         rgba = remove_background(image)
-    with _timed(timings, "reconstruct", device):
+    with _timed(timings, "reconstruct", device, on_stage):
         raw = image_to_mesh(rgba, request.seed, device)
-    with _timed(timings, "export", device):
+    with _timed(timings, "export", device, on_stage):
         mesh = finalize_mesh(raw)
         paths = save_mesh(mesh, out_dir, stem)
         report = validate_mesh(paths.glb)

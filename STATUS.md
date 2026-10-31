@@ -4,7 +4,7 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 
 | Person | Doing now | Files or dirs touched | Blocked on | Updated |
 | --- | --- | --- | --- | --- |
-| Swayam | S4 pipeline and CLI in PR, runs end to end with a stub for Udit's stages. Next S5 FastAPI | `pipeline.py`, `cli.py`, `reconstruct/`, `cutout/`, `export/` | Blender check of the chair GLB, PR #5 merge so the stub can go | Sun 1 Nov 00:20 |
+| Swayam | S5 FastAPI server in PR (`api/`), live-tested on the GPU. Next S6 pod bootstrap and run. PR #5 (Udit) still blocks the real sketch stages | `api/`, `pipeline.py`, `reconstruct/`, `cutout/`, `export/` | PR #5 merge, Blender check of the chair GLB | Sun 1 Nov 01:05 |
 | Disha (`sp4cefruity`) | D0 SSH key, D1 twelve test sketches | `samples/sketches/` | Nothing | - |
 | Udit (`ZenMaster192`) | U0 RunPod pod, then U2 preprocessing | RunPod account, `preprocess/` | Needs everyone's SSH public keys | - |
 
