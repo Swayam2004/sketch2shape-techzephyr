@@ -22,7 +22,7 @@ if (-not (Test-Path .env)) {
 if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
     Write-Host "NVIDIA GPU found. TripoSR needs about 6 GB of VRAM."
 } else {
-    Write-Host "CPU only. The pipeline still runs, but each model takes longer. Use the hosted demo or the shared pod for faster runs."
+    Write-Host "CPU only. The pipeline still runs, but each model takes longer. Use a machine with an NVIDIA GPU for faster runs."
 }
 
 Write-Host "Done. Next, read AGENTS.md, CONTEXT.md and STATUS.md, then start 'claude' in this folder."
