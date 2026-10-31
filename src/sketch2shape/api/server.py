@@ -36,6 +36,7 @@ QUEUE_LIMIT = 5
 RATE_LIMIT_PER_MINUTE = 10
 JOB_TTL_SECONDS = 3600
 ACCESS_CODE_ENV = "S2S_ACCESS_CODE"
+STATIC_DIR = Path(__file__).parent / "static"
 
 Runner = Callable[[GenerationRequest, Path, Callable[[str], None]], GenerationResult]
 
@@ -211,6 +212,10 @@ def create_app(
 
     def device() -> str:
         return select_device()
+
+    @app.get("/", include_in_schema=False)
+    def dashboard() -> FileResponse:
+        return FileResponse(STATIC_DIR / "index.html")
 
     @app.get("/v1/health")
     def health() -> dict:

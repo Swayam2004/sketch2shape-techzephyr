@@ -159,3 +159,8 @@ def test_old_jobs_are_removed(tmp_path) -> None:
         time.sleep(1.5)
         assert c.get(f"/v1/jobs/{job}").status_code == 404
         assert not (tmp_path / job).exists()
+
+
+def test_dashboard_is_served(client) -> None:
+    r = client.get("/")
+    assert r.status_code == 200 and "Sketch2Shape dashboard" in r.text
