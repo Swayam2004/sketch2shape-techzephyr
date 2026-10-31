@@ -6,6 +6,8 @@ WORK="${WORK:-/workspace}"
 REPO_SSH="git@github.com:Swayam2004/sketch2shape-techzephyr.git"
 REPO_DIR="$WORK/sketch2shape"
 KEY="$WORK/.ssh/s2s_deploy"
+# The network volume ignores chmod, so ssh rejects a key stored there. Use a copy on local disk.
+LOCAL_KEY="$HOME/.ssh/s2s_deploy"
 
 mkdir -p "$WORK/.cache/huggingface" "$WORK/.cache/uv" "$WORK/.cache/rembg" "$WORK/.ssh"
 
@@ -14,7 +16,7 @@ cat > "$WORK/s2s-env.sh" <<EOF
 export HF_HOME="$WORK/.cache/huggingface"
 export UV_CACHE_DIR="$WORK/.cache/uv"
 export REMBG_HOME="$WORK/.cache/rembg"
-export GIT_SSH_COMMAND="ssh -i $KEY -o StrictHostKeyChecking=accept-new"
+export GIT_SSH_COMMAND="ssh -i $LOCAL_KEY -o StrictHostKeyChecking=accept-new"
 EOF
 grep -q "s2s-env.sh" ~/.bashrc 2>/dev/null || echo "source $WORK/s2s-env.sh" >> ~/.bashrc
 # shellcheck disable=SC1090
@@ -27,6 +29,10 @@ fi
 if [ ! -f "$KEY" ]; then
   ssh-keygen -t ed25519 -N "" -f "$KEY" -C "runpod-s2s-deploy" >/dev/null
 fi
+
+mkdir -p "$HOME/.ssh"
+cp "$KEY" "$LOCAL_KEY"
+chmod 600 "$LOCAL_KEY"
 
 if ! git ls-remote "$REPO_SSH" >/dev/null 2>&1; then
   echo
