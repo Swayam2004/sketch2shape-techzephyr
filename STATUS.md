@@ -4,7 +4,7 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 
 | Person | Doing now | Files or dirs touched | Blocked on | Updated |
 | --- | --- | --- | --- | --- |
-| Swayam | S3 done on `feat/swayam-cutout-export` (cutout, finalize, save, validate), PR open. S2 merged, GPU chunking in PR #9. Next S4 pipeline and CLI | `reconstruct/`, `cutout/`, `export/`, `vendor/tsr/` | Blender check of the chair GLB | Sat 31 Oct 23:50 |
+| Swayam | S4 pipeline and CLI in PR, runs end to end with a stub for Udit's stages. Next S5 FastAPI | `pipeline.py`, `cli.py`, `reconstruct/`, `cutout/`, `export/` | Blender check of the chair GLB, PR #5 merge so the stub can go | Sun 1 Nov 00:20 |
 | Disha (`sp4cefruity`) | D0 SSH key, D1 twelve test sketches | `samples/sketches/` | Nothing | - |
 | Udit (`ZenMaster192`) | U2 preprocess, U3 generate code and U4 eval written, 28 tests green, not committed yet. U0 pod not started | `preprocess/`, `generate/`, `eval/`, `scripts/eval_testset.py`, `scripts/preprocess_check.py` | U0 needs everyone's SSH public keys. U3 needs `download_weights.py`. U4 needs `pipeline.run` and Disha's sketches | 31 Oct, after 16:30 |
 
