@@ -1,31 +1,41 @@
 # Sketch2Shape AI report
 
-Skeleton for the rulebook's required report sections. Disha owns this file. Fill each section as the work lands.
+Living report. Agents append short facts under each "Draft facts" list during their sessions. Disha does the final pass at the end, rewrites the facts into prose in the team's voice, and checks every number against `EXPERIMENTS.md`. Keep real failures and numbers in, because that is what makes it read as genuine.
+
+Fact format. `- 31 Oct 17:20 (Udit) TripoSR on the L4 took 4.1 s at mc-resolution 192, peak 5.8 GB. Source EXPERIMENTS #3.`
 
 ## Problem statement
 
-TODO
+Draft facts
 
 ## Solution approach
 
-TODO
+Draft facts
 
 ## Datasets used
 
-We use pretrained models and our own sketches. TODO list each model, source and licence.
+We use pretrained models and our own sketches. List each model, source and licence.
+
+Draft facts
 
 ## Model architecture
 
-TODO pipeline diagram and the reason for each model choice.
+Draft facts
 
 ## Evaluation metrics
 
-TODO silhouette IoU, time per model, peak memory, failure rate on the test set.
+Silhouette IoU against the cleaned sketch mask, time per model, peak memory, failure rate on the 12 test sketches.
+
+Draft facts
 
 ## Results and analysis
 
-TODO sample inputs and outputs, comparison table from `EXPERIMENTS.md`, what failed and how we recovered.
+Draft facts
+
+## What did not work and how we recovered
+
+Draft facts
 
 ## Real-world application
 
-TODO
+Draft facts

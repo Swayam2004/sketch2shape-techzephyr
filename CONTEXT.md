@@ -39,7 +39,9 @@ Terms and decisions. Keep it short. Add a decision when the team settles one.
 | D15 | Demo host priority. AWS GPU VM on credits first, then Modal, then a RunPod pod during judging windows. AWS is optional and Swayam-only (`docs/guides/aws-gpu-optional.md`). | AWS credits avoid cash spend. Quota approval time is unknown. |
 | D16 | Blender add-on is owned by Udit from about 00:00, tested by Disha. | Udit works best overnight. |
 | D17 | Pull requests into `main`, enforced by a repo ruleset with zero required approvals. Swayam merges. Agents run the git steps when a teammate says "ship it". | Strict but low friction for teammates who do not use git daily. |
-| D18 | Model choice is still open. See `docs/research/model-options.md`. Until decided, benchmark TripoSR first. | Waiting on the team. |
+| D18 | Image-to-3D candidates are TripoSR, Hunyuan3D-2mini and TripoSG-scribble. Stable Fast 3D and TRELLIS are out (gated, hard install). The team wants the highest quality that is still an easy install. Final pick follows `docs/research/model-quality.md`. | Judges and teammates need a simple setup. |
+| D19 | Living `REPORT.md`. Agents append facts each session, Disha does the final pass. `AI_USAGE.md` is written by agents at the end of every session. Disha owns README, report, slides, video, UI and the test set until someone has spare time and work is explicitly transferred. | Report must read as genuine without loading Disha. |
+| D20 | Judging is expected to take 5 to 6 days after the deadline (unofficial, from an organising committee contact). The hosted demo must stay usable for about 7 to 10 days. Always-on GPU is too expensive, so the host choice in D15 is under review. See `docs/research/long-window-hosting.md`. | Cash cap is about 1,500 to 2,000 INR. |
 
 ## Constraints worth remembering
 
