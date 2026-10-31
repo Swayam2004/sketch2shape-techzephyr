@@ -4,7 +4,7 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 
 | Person | Doing now | Files or dirs touched | Blocked on | Updated |
 | --- | --- | --- | --- | --- |
-| Swayam | S5 FastAPI server in PR (`api/`), live-tested on the GPU. Next S6 pod bootstrap and run. PR #5 (Udit) still blocks the real sketch stages | `api/`, `pipeline.py`, `reconstruct/`, `cutout/`, `export/` | PR #5 merge, Blender check of the chair GLB | Sun 1 Nov 01:05 |
+| Swayam | S5 and real stages merged. Weights folder names aligned with Udit's generate stage (PR open). Real sketch path fails on my 4 GB card (fp16 black frame, fp32 OOM), so S6 on the pod is next | `weights.py`, `pipeline.py`, `api/`, `infra/` | Pod SSH address and a deploy key for `infra/runpod/bootstrap.sh`. Blender check of the chair GLB | Sun 1 Nov 01:25 |
 | Disha (`sp4cefruity`) | D0 SSH key, D1 twelve test sketches | `samples/sketches/` | Nothing | - |
 | Udit (`ZenMaster192`) | U2 preprocess, U3 generate code and U4 eval written, 28 tests green, not committed yet. U0 pod not started | `preprocess/`, `generate/`, `eval/`, `scripts/eval_testset.py`, `scripts/preprocess_check.py` | U0 needs everyone's SSH public keys. U3 needs `download_weights.py`. U4 needs `pipeline.run` and Disha's sketches | 31 Oct, after 16:30 |
 
