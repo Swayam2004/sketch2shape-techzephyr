@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# model weights and generated artefacts stay out of git
+weights/
+outputs/
+.cache/
+*.safetensors
+*.ckpt
+*.pth
+
+.env
+.DS_Store
