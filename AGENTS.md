@@ -23,7 +23,8 @@ A polished UI does not replace a working, reproducible pipeline. The export must
 1. Read `STATUS.md`, `CONTEXT.md` and the section of `PLAN.md` for the current phase.
 2. Pick work inside your owner's directories (table below). Ask before editing someone else's.
 3. When you finish or stop, update your row in `STATUS.md` and add a row to `EXPERIMENTS.md` for any model or quality run, including failures.
-4. Log every AI tool use in `AI_USAGE.md`. The event requires disclosure.
+4. Append one row to `AI_USAGE.md` at the end of every session (date, who, tool, what the agent did, what the human decided). The agent writes it, the human does not have to. The event requires disclosure.
+5. Append plain facts to the matching section of `REPORT.md` under its "Draft facts" list. Real numbers, real failures, what changed and why. No polish. Disha rewrites the final version from these notes.
 
 ## Ownership
 
