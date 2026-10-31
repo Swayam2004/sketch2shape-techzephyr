@@ -3,7 +3,7 @@ name = "sketch2shape"
 version = "0.1.0"
 description = "Sketch to textured 3D asset pipeline for TechZephyr 4.0"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11,<3.13"
 # Heavy ML deps (torch, diffusers, TripoSR) get added once VRAM tests settle the model choice.
 dependencies = [
     "gradio",
