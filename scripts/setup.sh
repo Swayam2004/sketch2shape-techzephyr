@@ -23,9 +23,9 @@ fi
 
 if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi >/dev/null 2>&1; then
   vram=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits | head -n1)
-  echo "Hardware tier 2 (NVIDIA GPU, ${vram} MiB VRAM). Full pipeline needs about 6 GB or more."
+  echo "NVIDIA GPU found (${vram} MiB VRAM). TripoSR needs about 6 GB, so a smaller card falls back to CPU."
 else
-  echo "Hardware tier 3 (CPU only). Use the shared GPU box or the hosted demo for quality runs."
+  echo "CPU only. The pipeline still runs, but each model takes longer. Use the hosted demo or the shared pod for faster runs."
 fi
 
 echo "Done. Next, read AGENTS.md, CONTEXT.md and STATUS.md, then start 'claude' in this folder."

@@ -1,58 +1,71 @@
 # Sketch2Shape AI
 
-Turns a rough 2D sketch (drawn in the app or uploaded) and an optional text prompt into a textured 3D asset exported as `.glb` or `.obj`. Built for TechZephyr 4.0, IIT Bhubaneswar, 24 hour hackathon.
+Draw or upload a rough sketch, add an optional text prompt, and get a textured 3D mesh as `.glb` or `.obj`. Built for TechZephyr 4.0 at IIT Bhubaneswar, a 24 hour hackathon.
 
-> Status: scaffold only. Sections marked TODO get filled as the pipeline lands. See `docs/PLAN.md`.
+Status. The pipeline is under construction. Sections marked TODO get filled as the code lands. The plan is in `PLAN.md` and the task split is in `docs/tasks/`.
 
-## Pipeline
-
-TODO diagram and one paragraph per stage.
+## How it works
 
 ```
-sketch + prompt -> preprocess -> sketch-to-image -> cutout -> image-to-3D -> cleanup -> validate -> .glb/.obj
+sketch + prompt -> preprocess -> SD 1.5 + ControlNet scribble -> background removal -> TripoSR -> cleanup and checks -> .glb and .obj
 ```
+
+Every stage runs the same models and the same default settings on every machine. Only the device changes, `cuda` on an NVIDIA GPU and `cpu` everywhere else. A CPU run takes longer and the app says so.
+
+TODO a diagram and a short paragraph per stage.
+
+## Three ways to run it
+
+1. Hosted link. Nothing to install. TODO URL and access code.
+2. Local, with an NVIDIA GPU. TripoSR needs about 6 GB of VRAM.
+3. Local, on CPU. Works on any laptop and takes longer.
 
 ## Requirements
 
-TODO OS, Python version, GPU and VRAM, disk for weights, RAM.
+TODO OS, Python 3.11 (uv installs it), RAM, disk for weights, optional GPU.
 
 ## Install
 
-TODO exact commands, including weight download.
+TODO exact commands per OS, including the weight download. Note for Windows users with an NVIDIA GPU that the default PyTorch wheel is CPU only.
 
 ## Run
 
-TODO UI command, CLI command, example.
+TODO the UI command, the CLI command and an example.
 
 ## Inputs and outputs
 
-TODO accepted formats, sizes, output files, where they are written.
+TODO accepted formats and sizes, output files and where they are written.
 
 ## Results
 
-TODO sample sketch, generated image, rendered mesh, link to `samples/`.
+TODO a sample sketch, the generated image, a render of the mesh and a link to `samples/`.
 
 ## Timing and hardware
 
-TODO table of seconds and peak VRAM per stage, per backend, on the dev machine (GTX 1650 Ti, 4 GB).
+TODO a table of seconds and peak memory per stage, per device, measured on our machines. Say which machines.
 
 ## Models and third-party components
 
 | Component | Source | Licence | Used for |
 | --- | --- | --- | --- |
-| TODO | | | |
+| TripoSR | `stabilityai/TripoSR`, code from VAST-AI-Research/TripoSR | MIT | Image to 3D |
+| Stable Diffusion 1.5 | `stable-diffusion-v1-5/stable-diffusion-v1-5` | CreativeML OpenRAIL-M | Sketch to image |
+| ControlNet scribble v1.1 | `lllyasviel/control_v11p_sd15_scribble` | OpenRAIL | Keeps the sketch outline |
+| rembg, `isnet-general-use` | danielgatis/rembg | MIT (library), model terms TODO | Background removal |
+
+TODO add the remaining libraries (trimesh, scikit-image, diffusers and the rest).
 
 ## Limitations
 
-TODO hidden-side geometry is guessed, VRAM limits, failure cases we saw.
+TODO. A single view hides the back of the object, so the model guesses it. Add the failure cases we see.
 
 ## Troubleshooting
 
-TODO
+TODO real errors from our own runs.
 
 ## What did not work
 
-See `EXPERIMENTS.md`. TODO summary.
+See `EXPERIMENTS.md`. TODO a summary.
 
 ## AI tool usage
 
@@ -60,4 +73,4 @@ See `AI_USAGE.md`.
 
 ## Team
 
-TODO
+Himansu Swayam, Dishashree Swain and Udit Arun Nath.
