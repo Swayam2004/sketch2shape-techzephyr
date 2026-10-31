@@ -15,3 +15,6 @@ outputs/
 
 .env
 .DS_Store
+
+# private working notes and conversation logs, never pushed
+.notes/
