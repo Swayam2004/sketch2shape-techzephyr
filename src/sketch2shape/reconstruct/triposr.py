@@ -26,6 +26,9 @@ MC_RESOLUTION: dict[str, int] = {"cuda": 256, "cpu": 192}
 MC_THRESHOLD = 25.0
 # TripoSR was trained on objects composited over mid grey.
 BACKGROUND_GREY = 0.5
+# Grid points per MLP call. Upstream defaults to 8192 in its CLI, the library default of 0 sends
+# all resolution^3 points at once. Chunking is exact, it only bounds peak memory.
+CHUNK_SIZE = 8192
 
 
 class WeightsMissingError(FileNotFoundError):
@@ -60,6 +63,7 @@ def image_to_mesh(
     seed: int,
     device: Device,
     resolution: int | None = None,
+    chunk_size: int = CHUNK_SIZE,
 ) -> trimesh.Trimesh:
     """Reconstruct a vertex-coloured mesh from one cut-out object image.
 
@@ -78,6 +82,9 @@ def image_to_mesh(
     resolution = resolution or MC_RESOLUTION[device]
     torch.manual_seed(seed)
     model = _load_model(device, triposr_dir())
+    model.renderer.set_chunk_size(chunk_size)
+    if device == "cuda":
+        torch.cuda.reset_peak_memory_stats()
 
     started = time.perf_counter()
     image = _composite_on_grey(rgba)
@@ -91,13 +98,17 @@ def image_to_mesh(
         raise RuntimeError(
             "TripoSR produced an empty mesh. The input is probably too small or too faint."
         )
+    peak_mb = torch.cuda.max_memory_allocated() / 2**20 if device == "cuda" else 0.0
     logger.info(
-        "image_to_mesh seed=%d device=%s resolution=%d: %d vertices, %d faces in %.1fs",
+        "image_to_mesh seed=%d device=%s resolution=%d chunk=%d: %d vertices, %d faces in %.1fs, "
+        "peak VRAM %.0f MB",
         seed,
         device,
         resolution,
+        chunk_size,
         len(mesh.vertices),
         len(mesh.faces),
         time.perf_counter() - started,
+        peak_mb,
     )
     return mesh

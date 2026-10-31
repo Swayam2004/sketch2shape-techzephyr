@@ -40,6 +40,7 @@ Draft facts
 
 - 31 Oct 16:45 (Swayam) First real run. TripoSR on an M2 MacBook Air CPU, chair image, grid 192. 7.1 s to load, 32.9 s to reconstruct, 5.6 GB RAM, 22,779 vertices. The hidden side looks plausible (EXPERIMENTS #1).
 - 31 Oct 16:45 (Swayam) Grid 256 on the same CPU took 112.1 s and 8.6 GB RAM, 3.4 times the time of grid 192 (EXPERIMENTS #2). We keep 192 on CPU.
+- 31 Oct 23:35 (Swayam) TripoSR on the GTX 1650 Ti at grid 256 uses 2370 MB peak VRAM and reconstructs in 5.4 s, against 112 s on the M2 CPU at the same grid. We first expected 6 GB, because the library default sends all grid points through the MLP at once. Setting the renderer chunk size to 8192 bounds that. Chunk 2048 gave the same peak. The 4 GB card is enough, with no half precision.
 - 31 Oct 16:45 (Swayam) TripoSR's own frame has Z up and the front of the object facing +X. The pipeline needs Y up and front on +Z, so `finalize_mesh` has to apply `(x, y, z) -> (y, z, x)`. Found by rendering the mesh from three sides.
 
 ## What did not work and how we recovered
