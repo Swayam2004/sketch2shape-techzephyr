@@ -1,5 +1,7 @@
 # Shared dev GPU on RunPod
 
+This pod is for the team's development only. Judges do not use it. They run the project on their own machine (see `README.md`).
+
 Owner. Udit (his card pays). Everyone else connects over SSH. Prices below come from the research pass (`docs/research/cloud-gpu-options.md`) and may have moved, so read the console before you click Deploy.
 
 ## Why this setup

@@ -2,7 +2,7 @@
 
 Owner. Swayam builds the server in `src/sketch2shape/api/`. Disha's UI and Udit's Blender add-on are clients. Until the server exists, clients code against this file and a stub.
 
-Why jobs and polling. The hosted proxies cut a single request at 100 to 150 seconds, and CPU generation can take minutes. A client submits a job, then polls.
+Why jobs and polling. Proxies such as the RunPod one cut a single request at 100 seconds, and CPU generation can take minutes. A client submits a job, then polls.
 
 ## Auth
 
