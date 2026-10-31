@@ -4,7 +4,7 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 
 | Person | Doing now | Files or dirs touched | Blocked on | Updated |
 | --- | --- | --- | --- | --- |
-| Swayam | S2 done on branch `feat/swayam-triposr-cpu`, not pushed yet. Next S3 cutout, export, validate | `reconstruct/`, `vendor/tsr/`, `weights.py`, `scripts/download_weights.py`, `pyproject.toml` | Blender check of the GLB (no Blender on this machine) | Sat 31 Oct 16:50 |
+| Swayam | S3 done on `feat/swayam-cutout-export` (cutout, finalize, save, validate), PR open. S2 merged, GPU chunking in PR #9. Next S4 pipeline and CLI | `reconstruct/`, `cutout/`, `export/`, `vendor/tsr/` | Blender check of the chair GLB | Sat 31 Oct 23:50 |
 | Disha (`sp4cefruity`) | D0 SSH key, D1 twelve test sketches | `samples/sketches/` | Nothing | - |
 | Udit (`ZenMaster192`) | U0 RunPod pod, then U2 preprocessing | RunPod account, `preprocess/` | Needs everyone's SSH public keys | - |
 
