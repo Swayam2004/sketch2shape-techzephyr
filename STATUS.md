@@ -4,7 +4,7 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 
 | Person | Doing now | Files or dirs touched | Blocked on | Updated |
 | --- | --- | --- | --- | --- |
-| Swayam | S5 and real stages merged. Weights folder names aligned with Udit's generate stage (PR open). Real sketch path fails on my 4 GB card (fp16 black frame, fp32 OOM), so S6 on the pod is next | `weights.py`, `pipeline.py`, `api/`, `infra/` | Pod SSH address and a deploy key for `infra/runpod/bootstrap.sh`. Blender check of the chair GLB | Sun 1 Nov 01:25 |
+| Swayam | S6 done. Real pipeline ran twice on a RunPod GPU (IoU 0.953 and 0.943, EXPERIMENTS #8 and #9). Pod terminated, volume `s2s-weights` kept. Modal hosted demo dropped because the organisers accept localhost plus a 2 to 3 minute video. Next: wire best-of-N into `pipeline.py` once Udit sends the function, merge PRs | `weights.py`, `pipeline.py`, `api/`, `infra/` | Disha's 12 sketches, Udit's fp32 retry fix | Sun 1 Nov 03:45 |
 | Disha (`sp4cefruity`) | Sketches (in progress, by hand). README rewritten with no hosted path, dashboard polish chosen over a Gradio app (PR to Swayam for `api/static/index.html`), then REPORT prose, Blender check and video script | `README.md`, `docs/`, `api/static/index.html` (PR) | First real GLB from the pod, Udit's add-on zip | Sun 1 Nov 04:10 |
 | Udit (`ZenMaster192`) | U2 preprocess, U3 generate code and U4 eval written, 28 tests green, not committed yet. U0 pod not started | `preprocess/`, `generate/`, `eval/`, `scripts/eval_testset.py`, `scripts/preprocess_check.py` | U0 needs everyone's SSH public keys. U3 needs `download_weights.py`. U4 needs `pipeline.run` and Disha's sketches | 31 Oct, after 16:30 |
 
@@ -12,7 +12,7 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 
 | Resource | Owner | How to get in |
 | --- | --- | --- |
-| Dev GPU pod `s2s-dev` | Udit | Not created yet. See `docs/guides/runpod-dev-gpu.md`. Pod IP and port will be posted here. |
+| Dev GPU pod | Swayam | None running. RunPod volume `s2s-weights` (30 GB, EU-RO-1) holds weights and the repo. Ask Swayam to start a pod (about $0.72 per hour). |
 | Hosted demo URL | none | Dropped. The organisers asked for a localhost run and a 2 to 3 minute video. |
 
 ## Heads-ups on shared files
