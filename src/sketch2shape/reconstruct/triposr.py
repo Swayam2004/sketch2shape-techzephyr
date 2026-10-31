@@ -58,6 +58,11 @@ def _composite_on_grey(rgba: Image.Image) -> Image.Image:
     return Image.fromarray((rgb * 255.0).round().astype(np.uint8))
 
 
+def warm_up(device: Device) -> None:
+    """Load TripoSR now so the first request does not pay the model load."""
+    _load_model(device, triposr_dir())
+
+
 def image_to_mesh(
     rgba: Image.Image,
     seed: int,
