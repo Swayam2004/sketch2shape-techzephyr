@@ -62,6 +62,12 @@ def main() -> int:
             "pyproject.toml changed, run `uv sync`."
         )
     print("\n".join(actions) if actions else "Nothing. You are up to date. Read STATUS.md and go.")
+
+    print("\n== WRITING RULE")
+    print(
+        "Apply the unslop skill (.claude/skills/unslop/SKILL.md) to every doc, comment, "
+        "commit message, PR text and reply to the human. No em dashes, no filler."
+    )
     return 0
 
 

@@ -1,5 +1,7 @@
 # Cloud GPU options
 
+> Status note, 31 Oct 15:30. Judging is expected to last 5 to 6 days, which changed the demo plan. `docs/research/long-window-hosting.md` and `CONTEXT.md` D15 now set the hosting order. The dev GPU advice here still holds.
+
 Research date 31 Oct 2026, during the hackathon. Scope is a shared dev GPU, a judge demo endpoint and a cheap fallback for the pipeline in `docs/PLAN.md`. Nothing here was signed up for or run. INR figures use an assumed 90 INR per USD. Check the live rate.
 
 ## How to read the labels

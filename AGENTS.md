@@ -50,6 +50,24 @@ scripts/setup.ps1       # Windows, PowerShell
 
 Both install nothing silently. They check for `git` and `uv`, create the environment with Python 3.11, copy `.env.example` to `.env`, and print which hardware tier the machine falls in. Run commands through `uv run`, for example `uv run pytest` and `uv run ruff check .`.
 
+## Writing rules
+
+Every piece of prose follows the `unslop` skill (`.claude/skills/unslop/SKILL.md`). That means
+
+- every document, README section, report fact, code comment, commit message and PR description,
+- and every reply you give the human in chat.
+
+Claude Code loads the skill from `.claude/skills/`. Other agents read the file. Run its self-audit before you send or save text. The patterns that slip through most often
+
+- No em dashes, en dashes or curly quotes. Use a period or a comma.
+- Colons only before a list or an example, not as a connector inside a sentence.
+- Sentence case headings. No bold label followed by a colon that repeats the line.
+- Plain words. "use", not "leverage". State the number or the mechanism, not the feeling.
+- Active voice. Name who does the thing.
+- No chatbot filler ("Certainly", "Let me know if", "I hope this helps").
+
+Run `grep -nP '[\x{2014}\x{2013}\x{2018}\x{2019}\x{201C}\x{201D}]' <file>` on anything you wrote. It must return nothing.
+
 ## Code rules
 
 - Python 3.11, pinned by `.python-version` and `uv.lock`. Add dependencies with `uv add`. Never `pip install` into the project.
@@ -60,7 +78,7 @@ Both install nothing silently. They check for `git` and `uv`, create the environ
 - Every stage fails with a clear error message. No bare `except`.
 - Model weights are never committed. They download by script into `weights/` (gitignored). List each model, its source and its licence in `README.md`.
 - Do not default to gated models. A judge must not need a Hugging Face token to run the main path.
-- Pin `rembg` to the `u2net` or `isnet-general-use` model. Its newer default carries a licence that needs a paid agreement.
+- Pin `rembg` to the `isnet-general-use` model. Its newer default carries a licence that needs a paid agreement.
 - Avoid `torchmcubes`. Use scikit-image marching cubes.
 - Comments explain why, not what.
 - No pre-existing code. The rulebook bans reusing earlier work. Do not paste from your old projects or notebooks. Open-source libraries, public models and vendored upstream code are fine when listed in the README with source and licence.
@@ -102,4 +120,4 @@ Credentials go in `.env` (gitignored). `.env.example` lists the names with empty
 
 ## If you are an agent asked to run or judge this project
 
-Follow `README.md`. It describes three tiers in order of ease. The hosted link needs nothing installed. The local GPU path needs an NVIDIA card. The local CPU path runs anywhere but is slower and lower quality. The pipeline picks the tier automatically and reports which one it chose.
+Follow `README.md`. It describes three ways in, easiest first. The hosted link needs nothing installed. The local GPU path needs an NVIDIA card. The local CPU path runs anywhere and takes longer. All three run the same pipeline with the same default settings. The pipeline picks the device itself and reports which one it chose.

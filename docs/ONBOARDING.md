@@ -32,7 +32,7 @@ Windows PowerShell
 powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 ```
 
-The script creates the Python 3.11 environment, copies `.env.example` to `.env` and prints your hardware tier. It installs nothing without telling you. If `uv` is missing it stops and says so.
+The script creates the Python 3.11 environment, copies `.env.example` to `.env` and says whether it found an NVIDIA GPU. It installs nothing without telling you. If `uv` is missing it stops and says so.
 
 ## 4. Start your agent
 

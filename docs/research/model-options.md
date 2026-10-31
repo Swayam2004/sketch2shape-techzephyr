@@ -1,5 +1,7 @@
 # Model options
 
+> Status note, 31 Oct 15:30. The team chose TripoSR as the single model on every device (`CONTEXT.md` D18). The recommended stack and the "lite" path below are superseded. The comparison itself still holds.
+
 Decision aid for the model choice. Facts come from `backend-feasibility.md` (agent-reported, labelled verified or reported there). Nothing is benchmarked on our machines yet. The benchmark list is at the bottom.
 
 ## Stage 3 and 4. Image to 3D
