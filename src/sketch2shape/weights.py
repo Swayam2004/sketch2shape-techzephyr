@@ -24,11 +24,11 @@ def triposr_dir() -> Path:
 
 
 def sd15_dir() -> Path:
-    return weights_dir() / "sd15"
+    return weights_dir() / "stable-diffusion-v1-5"
 
 
 def controlnet_scribble_dir() -> Path:
-    return weights_dir() / "controlnet-scribble"
+    return weights_dir() / "control_v11p_sd15_scribble"
 
 
 def rembg_home() -> Path:
