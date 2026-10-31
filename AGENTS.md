@@ -20,20 +20,24 @@ A polished UI does not replace a working, reproducible pipeline. The export must
 
 ## Session start and end
 
-1. Read `STATUS.md`, `CONTEXT.md` and the section of `PLAN.md` for the current phase.
+0. Sync routine first, before anything else, in every chat. A hook runs `scripts/sync_check.py` when the session starts. Fetch the remote, pull every new change (rebase on a feature branch), resolve any conflict yourself with the `resolving-merge-conflicts` skill, run `uv sync` if the lockfile changed, read the new commits, `STATUS.md` and open PRs, and run `uv run pytest` before you start new work. If you cannot tell whose intent should win in a conflict, stop and ask the file's owner. Steps are in `docs/tasks/README.md`.
+1. Read `STATUS.md`, `CONTEXT.md`, the current phase in `PLAN.md` and your own file in `docs/tasks/`.
 2. Pick work inside your owner's directories (table below). Ask before editing someone else's.
 3. When you finish or stop, update your row in `STATUS.md` and add a row to `EXPERIMENTS.md` for any model or quality run, including failures.
 4. Append one row to `AI_USAGE.md` at the end of every session (date, who, tool, what the agent did, what the human decided). The agent writes it, the human does not have to. The event requires disclosure.
 5. Append plain facts to the matching section of `REPORT.md` under its "Draft facts" list. Real numbers, real failures, what changed and why. No polish. Disha rewrites the final version from these notes.
+6. Run the sync routine again before you end the chat, then push. Never leave unpushed work or an unread remote change behind.
 
 ## Ownership
 
 | Owner | Machine | Directories |
 | --- | --- | --- |
-| Swayam (integrator) | Linux, GTX 1650 Ti | `src/sketch2shape/reconstruct/`, `src/sketch2shape/export/`, `src/sketch2shape/api/`, `infra/` |
-| Disha | MacBook Air M2 | `src/sketch2shape/app/`, `README.md`, `docs/`, `AI_USAGE.md`, `samples/sketches/` |
-| Udit | Windows, AMD iGPU | `src/sketch2shape/preprocess/`, `src/sketch2shape/eval/`, `scripts/`, Windows and CPU checks |
-| Udit (after the eval harness, from about 00:00) | Windows | `blender_addon/`. Disha tests it on her Mac and documents it. |
+| Swayam (integrator) | Linux, GTX 1650 Ti | `src/sketch2shape/reconstruct/`, `cutout/`, `export/`, `api/`, `pipeline.py`, `infra/`, `scripts/download_weights.py` |
+| Disha | MacBook Air M2 | `src/sketch2shape/app/`, `README.md`, `REPORT.md`, `docs/` (except `docs/research/` and `docs/tasks/`), `AI_USAGE.md` audits, `samples/sketches/` |
+| Udit | Windows, AMD iGPU | `src/sketch2shape/preprocess/`, `generate/`, `eval/`, `scripts/` (except `download_weights.py`), Windows and CPU checks, the RunPod account |
+| Udit (from about 00:00) | Windows | `blender_addon/`. Disha tests it on her Mac and documents it. |
+
+Stage functions, types and the HTTP API are fixed in `src/sketch2shape/types.py` and `docs/api.md`. Per-person tasks, targets and acceptance checks are in `docs/tasks/`.
 
 Shared files (`pyproject.toml`, `AGENTS.md`, `CONTEXT.md`, `PLAN.md`) need a one line heads-up in `STATUS.md` before you edit them.
 

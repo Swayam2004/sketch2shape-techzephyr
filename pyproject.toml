@@ -4,14 +4,29 @@ version = "0.1.0"
 description = "Sketch to textured 3D asset pipeline for TechZephyr 4.0"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
-# Heavy ML deps (torch, diffusers, TripoSR) get added once VRAM tests settle the model choice.
+# TripoSR is vendored under src/sketch2shape/vendor/tsr (MIT), not installed from PyPI.
 dependencies = [
     "gradio",
     "numpy",
     "pillow",
     "opencv-python-headless",
     "trimesh",
-    "rembg",
+    "rembg[cpu]",
+    "torch>=2.15.0",
+    "diffusers>=0.42.1",
+    "transformers>=5.22.1",
+    "accelerate>=1.15.0",
+    "safetensors>=0.8.0",
+    "huggingface-hub>=2.4.0",
+    "omegaconf>=2.4.0",
+    "einops>=0.8.2",
+    "scikit-image>=0.26.0",
+    "scipy>=1.17.1",
+    "fastapi>=0.162.0",
+    "uvicorn>=0.54.0",
+    "python-multipart>=0.0.32",
+    "httpx>=0.28.1",
+    "imageio>=2.38.1",
 ]
 
 [dependency-groups]

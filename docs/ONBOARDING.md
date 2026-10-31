@@ -36,9 +36,9 @@ The script creates the Python 3.11 environment, copies `.env.example` to `.env` 
 
 ## 4. Start your agent
 
-Open `claude` in the repo folder. Project skills in `.claude/skills/` load by themselves. First prompt
+Open `claude` in the repo folder. Project skills in `.claude/skills/` load by themselves, and a hook prints the repo sync report when the session starts. First prompt, with your own name
 
-> Read AGENTS.md, CONTEXT.md, STATUS.md and PLAN.md. Tell me what I own and what the current phase needs. Then wait.
+> Read AGENTS.md, CONTEXT.md, STATUS.md, PLAN.md, docs/tasks/README.md and docs/tasks/<yourname>.md. Run the sync routine from docs/tasks/README.md. Then tell me in five lines what you are going to do first and what you need from the others. Wait for my go.
 
 ## 5. Work loop
 
