@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sketch2Shape dashboard</title>
-<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<script type="module" src="/static/model-viewer.min.js"></script>
 <style>
   :root { --bg:#14161a; --card:#1d2026; --line:#2c313a; --fg:#e6e8eb; --dim:#8b93a1; --ok:#4cc38a; --run:#e5a93d; --bad:#e5604d; --bar:#5b8def; }
   * { box-sizing: border-box; }
@@ -40,6 +40,14 @@
   model-viewer { height:340px; background:#2a2e36; }
   .links a { color:var(--bar); margin-right:14px; }
   .dim { color:var(--dim); }
+  .tabs { display:flex; gap:6px; margin-bottom:10px; }
+  .tabs button { margin:0; background:var(--bg); border:1px solid var(--line); color:var(--dim); }
+  .tabs button.on { border-color:var(--bar); color:var(--fg); }
+  #pad { width:100%; aspect-ratio:1; background:#fff; border-radius:6px; touch-action:none; cursor:crosshair; display:block; }
+  .tools { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+  .tools button { margin-top:8px; background:var(--bg); border:1px solid var(--line); }
+  .tools button.on { border-color:var(--bar); }
+  .banner { margin-top:8px; padding:8px 10px; border-radius:6px; background:#3a2f17; color:var(--run); }
 </style>
 </head>
 <body>
@@ -50,8 +58,24 @@
 <main>
   <div class="card">
     <h2>New job</h2>
-    <input id="file" type="file" accept="image/png,image/jpeg,image/webp">
-    <img id="sketchPreview" alt="sketch preview">
+    <div class="tabs">
+      <button id="tabDraw" class="on" type="button">Draw</button>
+      <button id="tabUpload" type="button">Upload</button>
+    </div>
+    <div id="drawPane">
+      <canvas id="pad" width="512" height="512"></canvas>
+      <div class="tools">
+        <button id="pen" class="on" type="button">Pen</button>
+        <button id="eraser" type="button">Eraser</button>
+        <button id="undo" type="button">Undo</button>
+      </div>
+      <button id="clear" type="button" style="background:var(--bg);border:1px solid var(--line)">Clear</button>
+    </div>
+    <div id="uploadPane" style="display:none">
+      <input id="file" type="file" accept="image/png,image/jpeg,image/webp">
+      <img id="sketchPreview" alt="sketch preview">
+      <p class="dim">PNG, JPG or WebP, up to 10 MB.</p>
+    </div>
     <label for="prompt">Prompt (optional, 300 characters)</label>
     <input id="prompt" type="text" maxlength="300" placeholder="a wooden chair">
     <label for="seed">Seed</label>
@@ -86,7 +110,10 @@
 <script>
 const STAGES = ["preprocess", "generate", "cutout", "reconstruct", "export"];
 const $ = (id) => document.getElementById(id);
+const POLL_LIMIT_MS = 15 * 60 * 1000;
+const MAX_UPLOAD = 10 * 1024 * 1024;
 let timer = null;
+let mode = "draw";
 
 const headers = () => { const c = $("code").value; return c ? { "X-Access-Code": c } : {}; };
 
@@ -98,36 +125,103 @@ async function refreshHealth() {
 }
 setInterval(refreshHealth, 3000); refreshHealth();
 
+// ---- drawing pad ----
+const pad = $("pad"), ctx = pad.getContext("2d");
+const history = [];
+let tool = "pen", drawing = false, dirty = false;
+function blank() { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, pad.width, pad.height); }
+blank();
+function snapshot() { history.push(ctx.getImageData(0, 0, pad.width, pad.height)); if (history.length > 30) history.shift(); }
+function pos(e) {
+  const r = pad.getBoundingClientRect();
+  return [(e.clientX - r.left) * pad.width / r.width, (e.clientY - r.top) * pad.height / r.height];
+}
+pad.addEventListener("pointerdown", (e) => {
+  snapshot(); drawing = true; dirty = true; pad.setPointerCapture(e.pointerId);
+  const [x, y] = pos(e);
+  ctx.lineCap = ctx.lineJoin = "round";
+  ctx.strokeStyle = tool === "pen" ? "#111" : "#fff";
+  ctx.lineWidth = tool === "pen" ? 6 : 28;
+  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 0.01, y); ctx.stroke();
+  updateGo();
+});
+pad.addEventListener("pointermove", (e) => { if (!drawing) return; const [x, y] = pos(e); ctx.lineTo(x, y); ctx.stroke(); });
+for (const ev of ["pointerup", "pointercancel"]) pad.addEventListener(ev, () => { drawing = false; });
+function setTool(t) { tool = t; $("pen").classList.toggle("on", t === "pen"); $("eraser").classList.toggle("on", t === "eraser"); }
+$("pen").onclick = () => setTool("pen");
+$("eraser").onclick = () => setTool("eraser");
+$("undo").onclick = () => { const s = history.pop(); if (s) ctx.putImageData(s, 0, 0); dirty = history.length > 0; updateGo(); };
+$("clear").onclick = () => { snapshot(); blank(); dirty = false; updateGo(); };
+
+// ---- source tabs and upload ----
+function setMode(m) {
+  mode = m;
+  $("tabDraw").classList.toggle("on", m === "draw"); $("tabUpload").classList.toggle("on", m === "upload");
+  $("drawPane").style.display = m === "draw" ? "" : "none"; $("uploadPane").style.display = m === "upload" ? "" : "none";
+  updateGo();
+}
+$("tabDraw").onclick = () => setMode("draw");
+$("tabUpload").onclick = () => setMode("upload");
 $("file").addEventListener("change", () => {
   const f = $("file").files[0];
-  $("go").disabled = !f;
-  if (f) { $("sketchPreview").src = URL.createObjectURL(f); $("sketchPreview").style.display = "block"; }
+  if (f && f.size > MAX_UPLOAD) { $("submitMsg").textContent = "That file is over 10 MB. Pick a smaller one."; $("file").value = ""; }
+  else if (f) { $("sketchPreview").src = URL.createObjectURL(f); $("sketchPreview").style.display = "block"; $("submitMsg").textContent = ""; }
+  updateGo();
 });
+function updateGo() { $("go").disabled = mode === "draw" ? !dirty : !$("file").files[0]; }
+const canvasBlob = () => new Promise((res) => pad.toBlob(res, "image/png"));
+
+// ---- submit and poll ----
+function explain(status, body, retryAfter) {
+  if (status === 401) return "The access code is missing or wrong. Enter the code the server was started with.";
+  if (status === 429) return `The server is busy or you sent too many jobs.${retryAfter ? ` Try again in ${retryAfter} s.` : " Try again shortly."}`;
+  if (status === 413) return "The sketch is too large. Keep it under 10 MB.";
+  return `${status}: ${body.detail || "request failed"}`;
+}
 
 $("go").addEventListener("click", async () => {
   const form = new FormData();
-  form.append("sketch", $("file").files[0]);
+  if (mode === "draw") form.append("sketch", await canvasBlob(), "sketch.png");
+  else form.append("sketch", $("file").files[0]);
   if ($("prompt").value) form.append("prompt", $("prompt").value);
   form.append("seed", $("seed").value || "0");
   $("go").disabled = true; $("submitMsg").textContent = "Submitting…";
-  const r = await fetch("/v1/jobs", { method: "POST", body: form, headers: headers() });
-  $("go").disabled = false;
+  let r;
+  try { r = await fetch("/v1/jobs", { method: "POST", body: form, headers: headers() }); }
+  catch { $("submitMsg").textContent = "Cannot reach the server."; updateGo(); return; }
+  updateGo();
   if (!r.ok) {
     const body = await r.json().catch(() => ({}));
-    $("submitMsg").textContent = `${r.status}: ${body.detail || r.statusText}`;
+    $("submitMsg").textContent = explain(r.status, body, r.headers.get("Retry-After"));
     return;
   }
   const { job_id } = await r.json();
   $("submitMsg").textContent = `Job ${job_id.slice(0, 8)} submitted.`;
   $("outputs").style.display = "none";
-  clearInterval(timer);
-  timer = setInterval(() => poll(job_id), 1000); poll(job_id);
+  $("error").textContent = "";
+  startPolling(job_id);
 });
+
+// Contract in docs/api.md. Every 1 s for the first 10 s, then every 3 s, give up after 15 minutes.
+function startPolling(id) {
+  clearTimeout(timer);
+  const t0 = Date.now();
+  const tick = async () => {
+    const age = Date.now() - t0;
+    if (age > POLL_LIMIT_MS) { $("error").textContent = "Timed out after 15 minutes. The job may still finish on the server."; return; }
+    let done = false;
+    try { done = await poll(id); } catch { $("error").textContent = "Lost contact with the server. Retrying…"; }
+    if (!done) timer = setTimeout(tick, age < 10000 ? 1000 : 3000);
+  };
+  tick();
+}
 
 async function poll(id) {
   const r = await fetch(`/v1/jobs/${id}`, { headers: headers() });
-  if (!r.ok) { $("error").textContent = `Status ${r.status}`; clearInterval(timer); return; }
-  render(await r.json());
+  if (!r.ok) { const b = await r.json().catch(() => ({})); $("error").textContent = explain(r.status, b, r.headers.get("Retry-After")); return true; }
+  const j = await r.json();
+  render(j);
+  return j.status === "done" || j.status === "failed";
 }
 
 function render(j) {
@@ -142,27 +236,29 @@ function render(j) {
     return `<div class="step ${cls}">${s}</div>`;
   }).join("");
 
-  const max = Math.max(1, ...j.timings.map((t) => t.seconds));
-  $("timings").innerHTML = j.timings.map((t) =>
+  const timings = j.timings || [];
+  const max = Math.max(1, ...timings.map((t) => t.seconds));
+  $("timings").innerHTML = timings.map((t) =>
     `<div class="row"><span>${t.stage}</span><div class="track"><div class="fill" style="width:${(t.seconds / max) * 100}%"></div></div>` +
     `<span class="num">${t.seconds}s${t.peak_vram_mb ? " · " + Math.round(t.peak_vram_mb) + " MB" : ""}</span></div>`).join("");
-  $("warnings").innerHTML = j.warnings.map((w) => `<div class="warn">${w}</div>`).join("");
-  $("error").textContent = j.error || "";
+  // textContent, because warnings come from the server.
+  $("warnings").replaceChildren(...(j.warnings || []).map((w) => { const d = document.createElement("div"); d.className = "banner"; d.textContent = w; return d; }));
+  $("error").textContent = j.status === "failed" ? `The job failed. ${j.error || "No reason was given."}` : "";
 
-  if (j.status === "done" || j.status === "failed") clearInterval(timer);
   if (j.status === "done") showOutputs(j);
 }
 
 async function showOutputs(j) {
   const base = `/v1/jobs/${j.job_id}`;
-  // Fetch as blobs so the access code header applies to image and model requests too.
-  const blobUrl = async (name) => URL.createObjectURL(await (await fetch(`${base}/${name}`, { headers: headers() })).blob());
-  $("genImg").src = await blobUrl("generated.png");
-  const glb = await blobUrl("result.glb");
-  $("viewer").src = glb;
-  $("links").innerHTML = ["result.glb", "result.obj", "generated.png"].map((n) => `<a href="${base}/${n}" download>${n}</a>`).join("") +
+  // Fetch as blobs so the access code header applies to every request, then offer them as downloads.
+  const grab = async (name) => { const r = await fetch(`${base}/${name}`, { headers: headers() }); return r.ok ? URL.createObjectURL(await r.blob()) : null; };
+  const [img, glb, obj] = await Promise.all([grab("generated.png"), grab("result.glb"), grab("result.obj")]);
+  if (img) $("genImg").src = img;
+  if (glb) $("viewer").src = glb;
+  const links = [["result.glb", glb], ["result.obj", obj], ["generated.png", img]].filter(([, u]) => u);
+  $("links").innerHTML = links.map(([n, u]) => `<a href="${u}" download="${n}">Download ${n}</a>`).join("") +
     (j.silhouette_iou != null ? `<span class="dim">silhouette IoU ${j.silhouette_iou.toFixed(3)}</span>` : "");
-  $("viewerNote").textContent = customElements.get("model-viewer") ? "" : "3D viewer script did not load (needs internet). Download the .glb and open it in Blender.";
+  $("viewerNote").textContent = customElements.get("model-viewer") ? "" : "The 3D viewer did not load. Download the .glb and open it in Blender.";
   $("outputs").style.display = "block";
 }
 </script>

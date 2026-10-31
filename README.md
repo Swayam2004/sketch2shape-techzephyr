@@ -116,7 +116,7 @@ All weights download by script into `weights/` (gitignored). None are gated.
 | ControlNet scribble v1.1 | `lllyasviel/control_v11p_sd15_scribble` | OpenRAIL | Keeps the sketch outline |
 | rembg, `isnet-general-use` | danielgatis/rembg | MIT (library), model terms TODO | Background removal |
 | `tsr` (vendored) | VAST-AI-Research/TripoSR at commit `107cefd`, changes in `src/sketch2shape/vendor/tsr/SOURCE.md` | MIT | TripoSR model code |
-| model-viewer | Google, `@google/model-viewer` | Apache-2.0 | 3D view in the dashboard. TODO vendored copy |
+| model-viewer 4.4.0 | Google, `@google/model-viewer`, copy in `src/sketch2shape/api/static/` (file header says BSD-3-Clause, the npm package says Apache-2.0) | BSD-3-Clause or Apache-2.0 | 3D view in the dashboard, works offline |
 
 TODO add the remaining libraries (trimesh, scikit-image, diffusers, FastAPI and the rest).
 
@@ -136,7 +136,7 @@ Our inputs are pretrained models and our own sketches in `samples/sketches/`. We
 | Black generated image on a small GPU | fp16 overflow on a 4 GB card. Run with `--device cpu`, or use a bigger GPU. |
 | CUDA out of memory in the generate stage | The model needs more than 4 GB. Use `--device cpu`. |
 | The run is slow and the log says `cpu` | No NVIDIA GPU was found. This is expected. TripoSR grid 192 takes 22 to 33 s, the generate stage takes minutes. |
-| The 3D view stays empty | The dashboard loads the viewer script from the internet unless a local copy is vendored. Download the `.glb` and open it in Blender. |
+| The 3D view stays empty | The viewer script ships in the repo, so this is not a network problem. Check the browser console. Download the `.glb` and open it in Blender meanwhile. |
 | `uv sync` times out | Set `UV_HTTP_TIMEOUT=300` and rerun. |
 
 ## What did not work
