@@ -6,7 +6,7 @@ Live board. One row per person. Update it when you start, switch or stop work, a
 | --- | --- | --- | --- | --- |
 | Swayam | S6 done. Real pipeline ran twice on a RunPod GPU (IoU 0.953 and 0.943, EXPERIMENTS #8 and #9). Pod terminated, volume `s2s-weights` kept. Modal hosted demo dropped because the organisers accept localhost plus a 2 to 3 minute video. Next: wire best-of-N into `pipeline.py` once Udit sends the function, merge PRs | `weights.py`, `pipeline.py`, `api/`, `infra/` | Disha's 12 sketches, Udit's fp32 retry fix | Sun 1 Nov 03:45 |
 | Disha (`sp4cefruity`) | Sketches (in progress, by hand). README rewritten with no hosted path, dashboard polish chosen over a Gradio app (PR to Swayam for `api/static/index.html`), then REPORT prose, Blender check and video script | `README.md`, `docs/`, `api/static/index.html` (PR) | First real GLB from the pod, Udit's add-on zip | Sun 1 Nov 04:10 |
-| Udit (`ZenMaster192`) | Task A done in PR `feat/udit-generate-fp16-fix`: fp32 retry frees the fp16 pipeline, VAE kept in fp32, opt-in `S2S_OFFLOAD=1`. Verified on CPU only. Next: Task B best-of-N, Blender add-on, Windows CPU run | `generate/`, `tests/test_generate.py`, `EXPERIMENTS.md` | Swayam, a pod run for the fp16 VAE and offload checks (below). Disha's sketches | Sun 1 Nov 04:45 |
+| Udit (`ZenMaster192`) | Task A done in PR `feat/udit-generate-fp16-fix`: fp32 retry frees the fp16 pipeline, VAE kept in fp32, opt-in `S2S_OFFLOAD=1`. Verified on CPU only. PR #21 best-of-N selection and PR #22 Blender add-on are open. Windows CPU run done. Next: run the 12 sketches when Disha pushes them | `generate/`, `tests/test_generate.py`, `EXPERIMENTS.md` | Swayam, a pod run for the fp16 VAE and offload checks (below). Disha's sketches | Sun 1 Nov 04:45 |
 
 ## Shared resources
 
@@ -29,3 +29,6 @@ Write one line here before you edit `pyproject.toml`, `uv.lock`, `AGENTS.md`, `C
 ## Requests
 
 - 1 Nov 04:45 Udit to Swayam. I have no CUDA card. Please run the real sketch path on the pod and on your 1650 Ti, with `generate` from my PR branch `feat/udit-generate-fp16-fix`. Three runs, each logged as an EXPERIMENTS row with seconds and peak VRAM. 1) Default fp16 with the fp32 VAE. Is the black frame gone? 2) Same with `S2S_OFFLOAD=1`. 3) On the 1650 Ti, if the black frame stays, does the fp32 retry now fit in 4 GB? Also, `sketch_to_image` returns only an image, so its fp32 retry warning goes to the log and not to `PipelineResult.warnings`. Tell me if you want that surfaced.
+
+- 1 Nov 05:35 Udit to Swayam. Windows CPU run done (EXPERIMENTS #9), no friction. Two findings for `pipeline.py`. 1) `CPU_WARNING` says the 3D step takes 20 to 40 s and generation takes longer. Generate took 263 s here, so a judge should be told about 5 minutes. Suggested text, "Running on CPU. Expect about 5 minutes per sketch." 2) `WeightsMissingError` in `reconstruct/triposr.py` does not say the download is about 7 GB. I added that to the generate stage message, which a fresh clone hits first.
+

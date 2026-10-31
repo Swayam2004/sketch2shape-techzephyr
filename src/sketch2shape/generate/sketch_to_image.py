@@ -74,7 +74,8 @@ def _model_paths(root: Path) -> tuple[Path, Path]:
     if missing:
         names = ", ".join(str(p) for p in missing)
         raise ModelFilesMissing(
-            f"Missing model files: {names}. Run `uv run python scripts/download_weights.py` first."
+            f"Missing model files: {names}. Run `uv run python scripts/download_weights.py` first. "
+            "It downloads about 7 GB in total and skips files you already have."
         )
     return sd, controlnet
 
