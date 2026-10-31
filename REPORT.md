@@ -14,6 +14,10 @@ Draft facts
 
 - 31 Oct 16:45 (Swayam) TripoSR is vendored under `src/sketch2shape/vendor/tsr/` at upstream commit 107cefd instead of installed from PyPI. Changes are listed in its `SOURCE.md`. `torchmcubes` is replaced by scikit-image marching cubes, and the texture bake is dropped, so the mesh carries vertex colours.
 - 31 Oct 16:45 (Swayam) `image_to_mesh` composites the RGBA cutout on mid grey, as TripoSR was trained, then extracts the mesh at a marching-cubes grid of 192 on CPU and 256 on CUDA. Same code path, one setting.
+- TripoSR (Tochilkin et al., arXiv 2403.02151, p. 2) guesses camera extrinsics and intrinsics instead of taking them as input. It takes one 512 x 512 image and reports about 0.5 s on an A100. The paper tests on GSO and OmniObject3D object sets and says nothing about sketches.
+- ControlNet (Zhang et al., ICCV 2023, p. 3817) trained with 50% empty prompts, so a scribble works without text. With no prompt, control on both CFG branches removes classifier-free guidance (Section 3.4). The prompt fallback is therefore a swept setting, not a default.
+- SketchDream (Liu et al., ACM TOG 2024, p. 44:2) says a ControlNet image lifted by an image-to-3D model gives distorted unseen views and fuzzy back textures. Our back side is a model guess for the same reason.
+- Training-free control costs too much for the hosted limit. FreeControl needs 176.31 s per image on an A6000 (CVPR 2024, Table 2, p. 7472). We use ControlNet.
 
 ## Datasets used
 
@@ -35,6 +39,10 @@ Silhouette IoU against the cleaned sketch mask, time per model, peak memory, fai
 Draft facts
 
 - 31 Oct (Udit) Silhouette IoU renders the mesh outline orthographically without OpenGL (one `fillConvexPoly` per triangle, because overlapping front and back faces cancel under even-odd filling). Mesh and sketch mask are both cropped to their bounding box, so the score ignores scale and position. Unit tests: a unit cube against a square mask scores above 0.97, a sphere beats a box against a disc.
+- Sketch2Model (Zhang et al., CVPR 2021, Table 4, p. 6015) measures sketch fidelity as the IoU between the mesh projected to the ground-truth view and the sketch silhouette. Its mean is 0.716 for a baseline and 0.745 with a predicted view. We use the same idea with a cleaned sketch mask.
+- TripoSR does not return a camera. TripoSR's own shape metrics align predictions with a brute-force rotation search plus ICP (p. 4). We therefore plan to report raw IoU at a fixed view, aligned IoU and best IoU over a small view grid, with raw IoU as the headline.
+- SKED defines Intersection-over-Sketch, the share of the sketch covered by the generated mask. Mean 0.8220 with its silhouette loss and 0.0211 without, on five samples (ICCV 2023, Table 2, p. 14568).
+- There is no accepted automatic metric for sketch simplification, and papers use visual comparison or user studies (Xu et al., TPAMI 2023, p. 295). Silhouette IoU is a simple checkable proxy, not a perceptual score.
 
 ## Results and analysis
 
