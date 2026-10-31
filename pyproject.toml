@@ -41,3 +41,5 @@ packages = ["src/sketch2shape"]
 
 [tool.ruff]
 line-length = 100
+# Upstream TripoSR code, kept close to the original so it can be diffed. See vendor/tsr/SOURCE.md.
+extend-exclude = ["src/sketch2shape/vendor"]
