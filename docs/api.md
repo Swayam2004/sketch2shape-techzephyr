@@ -48,8 +48,10 @@ Available when `status` is `done`. `404` before that. `preview.png` is the gener
 ### GET /v1/health
 
 ```json
-{"status": "ok", "device": "cuda | cpu", "gpu_name": "NVIDIA L4 | null", "version": "0.1.0", "queue_length": 0}
+{"status": "ok", "device": "cuda | cpu", "gpu_name": "NVIDIA L4 | null", "version": "0.1.0", "queue_length": 0, "ready": true}
 ```
+
+`ready` is `false` while the server loads its models after start, which takes 3 to 7 minutes on a cold machine. The server accepts jobs meanwhile and runs them once `ready` turns true.
 
 ## Client rules
 

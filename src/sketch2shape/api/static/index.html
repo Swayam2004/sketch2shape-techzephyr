@@ -120,7 +120,7 @@ const headers = () => { const c = $("code").value; return c ? { "X-Access-Code":
 async function refreshHealth() {
   try {
     const h = await (await fetch("/v1/health")).json();
-    $("health").textContent = `${h.device}${h.gpu_name ? " · " + h.gpu_name : ""} · queue ${h.queue_length} · v${h.version}`;
+    $("health").textContent = `${h.device}${h.gpu_name ? " · " + h.gpu_name : ""} · queue ${h.queue_length} · v${h.version}${h.ready === false ? " · loading models, the first job waits" : ""}`;
   } catch { $("health").textContent = "server unreachable"; }
 }
 setInterval(refreshHealth, 3000); refreshHealth();

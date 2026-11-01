@@ -164,3 +164,25 @@ def test_old_jobs_are_removed(tmp_path) -> None:
 def test_dashboard_is_served(client) -> None:
     r = client.get("/")
     assert r.status_code == 200 and "Sketch2Shape dashboard" in r.text
+
+
+def test_server_answers_while_warming_and_runs_queued_jobs_after(tmp_path) -> None:
+    release = threading.Event()
+    with TestClient(create_app(fake_runner, tmp_path, warmup=release.wait)) as c:
+        assert c.get("/v1/health").json()["ready"] is False
+        job_id = _post(c).json()["job_id"]
+        time.sleep(0.2)
+        assert c.get(f"/v1/jobs/{job_id}").json()["status"] == "queued"
+        release.set()
+        assert _wait(c, job_id)["status"] == "done"
+        assert c.get("/v1/health").json()["ready"] is True
+
+
+def test_failed_warmup_does_not_block_jobs(tmp_path) -> None:
+    def broken() -> None:
+        raise RuntimeError("no weights")
+
+    with TestClient(create_app(fake_runner, tmp_path, warmup=broken)) as c:
+        job_id = _post(c).json()["job_id"]
+        assert _wait(c, job_id)["status"] == "done"
+        assert c.get("/v1/health").json()["ready"] is True
