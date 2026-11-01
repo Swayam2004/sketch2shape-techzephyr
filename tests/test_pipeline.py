@@ -176,3 +176,27 @@ def test_fp32_retry_note_reaches_the_result_warnings(tmp_path, monkeypatch) -> N
         candidates=2,
     )
     assert result.warnings.count("reran in fp32") == 1
+
+
+def test_selection_uses_the_3d_score_when_an_iou_stage_exists(tmp_path, monkeypatch) -> None:
+    """A cut-out can match the sketch and still reconstruct badly, so the mesh decides."""
+    built: list[int] = []
+
+    def reconstruct(rgba, seed, device):
+        built.append(seed)
+        return _fake_mesh(rgba, seed, device)
+
+    scores = iter([0.20, 0.90, 0.50])  # one call per candidate, in seed order
+    monkeypatch.setattr(pipeline, "remove_background", _shaped_cutout)
+    monkeypatch.setattr(pipeline, "image_to_mesh", reconstruct)
+    result = run(
+        GenerationRequest(Image.new("RGB", (64, 64)), None, 20),
+        "cpu",
+        tmp_path,
+        "t",
+        Stages(_prepare_bar, _tag_generate, iou=lambda mesh, mask: next(scores)),
+        candidates=3,
+    )
+    assert built == [20, 21, 22]
+    assert result.seed == 21 and result.silhouette_iou == 0.90
+    assert Image.open(result.generated_image).getpixel((0, 0))[0] == 21

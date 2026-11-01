@@ -98,7 +98,8 @@ Twelve pen sketches photographed on paper, each with one prompt, seed 0, on an R
 
 | Run | Mean silhouette IoU | Lowest | Seconds per sketch, warm |
 | --- | --- | --- | --- |
-| Best of 3 seeds (default) | 0.893 | 0.701 (bulb) | 12 |
+| Best of 3 seeds, picked by the 3D outline (default) | 0.911 | 0.701 (bulb) | about 16 |
+| Best of 3 seeds, picked by the 2D cut-out | 0.893 | 0.701 (bulb) | 12 |
 | One seed | 0.880 | 0.683 (bulb) | 5 |
 
 The `.glb` files are in `samples/meshes/real_sketches/`, the per-sketch tables are in `samples/sketches/results/`. More cases, with prompt tests, are in `samples/test_cases/results/README.md`.
@@ -137,11 +138,11 @@ Our inputs are pretrained models and our own sketches in `samples/sketches/`. We
 
 ## Limitations
 
-- A single view hides the back of the object, so TripoSR guesses it. Expect plausible but invented backs.
+- A single view hides the back of the object, so TripoSR guesses it. Expect plausible but invented backs. A tree canopy or a cloud can look right from the front and flat or slanted from the side. Best of 3 picks the candidate whose mesh matches the sketch best, which reduces this but does not remove it. A multi-view model such as Zero123++ or InstantMesh would fix it and is future work.
 - The generate stage does not run on a 4 GB laptop GPU. fp16 returns a black frame and fp32 runs out of memory (`EXPERIMENTS.md` row 7). Use a GPU with more memory or the CPU path.
 - Meshes are not always watertight. The CPU default of grid 192 gave a non-watertight chair, grid 256 gave a watertight one.
 - Fine details are not kept. The button sketch has four holes and the result has five. The bulb sketch has light rays around it and the result is a rounded blob (IoU 0.70). The cloud comes out as stacked foam.
-- Best of 3 picks by the 2D outline, so it can lower a score. The cloud falls from 0.972 to 0.883 and the paperclip from 0.949 to 0.910, while the envelope rises from 0.698 to 0.934.
+- Best of 3 first picked by the 2D cut-out outline, which lowered some scores (cloud 0.972 to 0.883). It now builds all three meshes and picks by the mesh outline, which fixed those cases.
 - A sketch with several objects or heavy shading was not part of the test set.
 
 ## Troubleshooting
