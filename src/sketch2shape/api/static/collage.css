@@ -31,7 +31,7 @@ button, input, summary { font:inherit; color:inherit; }
 @keyframes drift { to { margin-top:14px; margin-left:-8px; } }
 
 /* header */
-.top { position:relative; z-index:5; display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; justify-content:space-between; padding:14px 22px 4px; }
+.top { position:relative; z-index:5; display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; justify-content:space-between; padding:30px 22px 8px; }
 .title { margin:0; font:400 clamp(34px,6vw,64px)/1 var(--display); letter-spacing:.02em; color:var(--cream); -webkit-text-stroke:7px var(--ink); paint-order:stroke fill;
   text-shadow:5px 5px 0 var(--magenta); transform:rotate(-2deg); filter:url(#wobble); }
 .title .or { font-size:.5em; color:var(--mustard); display:inline-block; transform:rotate(-8deg) translateY(-2px); margin:0 3px; -webkit-text-stroke:5px var(--ink); }
