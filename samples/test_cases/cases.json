@@ -1,0 +1,20 @@
+[
+  {"id": "mug", "sketch": "mug.png", "prompt": "a blue ceramic mug", "level": "1 simple"},
+  {"id": "table", "sketch": "table.png", "prompt": "a wooden dining table", "level": "1 simple"},
+  {"id": "chair", "sketch": "chair.png", "prompt": "a wooden chair", "level": "2 medium"},
+  {"id": "lamp", "sketch": "lamp.png", "prompt": "a brass desk lamp with a white shade", "level": "2 medium"},
+  {"id": "house", "sketch": "house.png", "prompt": "a small red brick cottage", "level": "3 detailed"},
+  {"id": "bicycle", "sketch": "bicycle.png", "prompt": "a vintage bicycle", "level": "3 detailed"},
+  {"id": "robot", "sketch": "robot.png", "prompt": "a friendly toy robot, shiny metal", "level": "3 detailed"},
+  {"id": "sailboat", "sketch": "sailboat.png", "prompt": "a wooden sailboat", "level": "4 complex"},
+  {"id": "guitar", "sketch": "guitar.png", "prompt": "an acoustic guitar", "level": "4 complex"},
+  {"id": "chair_noprompt", "sketch": "chair.png", "prompt": "", "level": "prompt test: none"},
+  {"id": "chair_velvet", "sketch": "chair.png", "prompt": "a red velvet armchair", "level": "prompt test: material"},
+  {"id": "chair_chrome", "sketch": "chair.png", "prompt": "a futuristic chrome chair", "level": "prompt test: style"},
+  {"id": "chair_stone", "sketch": "chair.png", "prompt": "a chair carved from grey stone", "level": "prompt test: material"},
+  {"id": "house_gingerbread", "sketch": "house.png", "prompt": "a gingerbread house covered in candy", "level": "prompt test: style"},
+  {"id": "house_glass", "sketch": "house.png", "prompt": "a modern glass and concrete house", "level": "prompt test: style"},
+  {"id": "robot_steampunk", "sketch": "robot.png", "prompt": "a rusty steampunk robot with brass gears", "level": "prompt test: style"},
+  {"id": "mug_as_teapot", "sketch": "mug.png", "prompt": "a porcelain teapot", "level": "prompt test: conflicts with sketch"},
+  {"id": "chair_as_horse", "sketch": "chair.png", "prompt": "a horse", "level": "prompt test: conflicts with sketch"}
+]
