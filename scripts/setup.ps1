@@ -25,4 +25,4 @@ if (Get-Command nvidia-smi -ErrorAction SilentlyContinue) {
     Write-Host "CPU only. The pipeline still runs, but each model takes longer. Use a machine with an NVIDIA GPU for faster runs."
 }
 
-Write-Host "Done. Next, read AGENTS.md, CONTEXT.md and STATUS.md, then start 'claude' in this folder."
+Write-Host "Done. Next, read README.md, then run 'uv run sketch2shape serve'."

@@ -19,8 +19,6 @@ outputs/
 # private working notes and conversation logs, never pushed
 .notes/
 
-# per-person agent settings
-.claude/settings.local.json
 
 # downloaded research PDFs, copyrighted and 200+ MB
 papers/
