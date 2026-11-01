@@ -184,7 +184,7 @@ We have not set prices. They should sit well above the compute cost and below an
 
 - Meshes carry vertex colours, not a texture.
 - The back of the object is invented.
-- The meshes have not yet been opened and checked in the Blender window. The `STATUS.md` board still lists this as open.
+- The meshes have not yet been opened and checked in the Blender window.
 - The 3D-selection timing of about 16 s is an estimate. `EXPERIMENTS.md` row 17 says it was not re-measured.
 - All GPU quality numbers come from one rented RTX PRO 4500. The CPU path was timed on one Windows laptop with a single seed.
 - The demo video is not recorded.
