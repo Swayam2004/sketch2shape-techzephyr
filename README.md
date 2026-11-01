@@ -6,6 +6,8 @@ Draw or upload a rough sketch, add an optional text prompt, and get a textured 3
 
 The organisers asked for a localhost run plus a 2 to 3 minute demo video, so there is no hosted demo. You run the server on your own machine and open it in a browser.
 
+The project report is [report/2D or not 2D.pdf](<report/2D or not 2D.pdf>). `EXPERIMENTS.md` has every run, including the failures.
+
 ## How it works
 
 ```mermaid
