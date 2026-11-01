@@ -19,3 +19,13 @@ Real pipeline outputs from a RunPod RTX PRO 4500 Blackwell (32 GB), 1 Nov 2026. 
 | `house_glass.glb` | `samples/test_cases/house.png` | a modern glass and concrete house | 0.949 |
 
 All four are single watertight meshes with vertex colours. The full 18 case table is in `samples/test_cases/results/README.md`.
+
+## Demo meshes (best-of-3, seed 0, pod session 2)
+
+Made by the pipeline as merged in PR #26 on an RTX PRO 4500 Blackwell. Each run picked the best of seeds 0, 1 and 2 by 2D IoU. The `_generated.png` file is the Stable Diffusion image of the winning seed.
+
+| File | Sketch | Prompt | Silhouette IoU |
+| --- | --- | --- | --- |
+| `demo_chair.glb` | `samples/test_cases/chair.png` | a wooden chair | 0.953 |
+| `demo_house.glb` | `samples/test_cases/house.png` | a small red brick cottage | 0.954 |
+| `demo_mug.glb` | `samples/test_cases/mug.png` | a blue ceramic mug | 0.878 |
