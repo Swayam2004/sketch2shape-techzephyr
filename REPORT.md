@@ -6,9 +6,27 @@ Fact format. `- 31 Oct 17:20 (Udit) TripoSR on the L4 took 4.1 s at mc-resolutio
 
 ## Problem statement
 
+A modeller needs hours to turn a rough drawing into a 3D asset. We want a tool where a user draws or uploads a sketch, optionally types a short prompt, and gets a textured mesh as `.glb` or `.obj` in minutes. The export must be real 3D geometry that opens in Blender, not a rendered image or a flat textured plane.
+
+The organisers asked for a localhost run and a 2 to 3 minute video, so judges run the project on their own machine. That makes hardware the main constraint. Our dev laptop has a 4 GB GTX 1650 Ti, a judge may have no NVIDIA card at all, and the pipeline has to behave the same in both cases.
+
 Draft facts
 
 ## Solution approach
+
+The pipeline has six stages. Preprocess cleans the sketch (Otsu threshold, speck removal, 512 px canvas). Stable Diffusion 1.5 with a ControlNet scribble model turns the sketch and prompt into an object image that keeps the sketch outline. rembg with `isnet-general-use` removes the background. TripoSR predicts a triplane from the image, and scikit-image marching cubes extracts a mesh. A finalize step keeps the largest component, rotates to glTF axes and fits a unit cube. The export step writes `.glb` and `.obj` with vertex colours and checks that the file loads.
+
+```mermaid
+flowchart LR
+    A[Sketch + prompt] --> B[Preprocess]
+    B --> C[SD 1.5 + ControlNet scribble]
+    C --> D[rembg isnet-general-use]
+    D --> E[TripoSR + marching cubes]
+    E --> F[Finalize mesh]
+    F --> G[Validate, export .glb and .obj]
+```
+
+We chose one image-to-3D model for every device so results match across machines. TripoSR is MIT licensed, ungated and runs on CPU and GPU. We vendored its code instead of installing it, because the upstream texture bake has open bugs and `torchmcubes` is hard to build. The mesh keeps vertex colours.
 
 Draft facts
 
@@ -21,11 +39,24 @@ Draft facts
 
 ## Datasets used
 
-We use pretrained models and our own sketches. List each model, source and licence.
+We trained nothing and used no dataset. The inputs are pretrained models and our own sketches.
+
+| Model | Source | Licence |
+| --- | --- | --- |
+| TripoSR | `stabilityai/TripoSR` | MIT |
+| Stable Diffusion 1.5 | `stable-diffusion-v1-5/stable-diffusion-v1-5` | CreativeML Open RAIL-M |
+| ControlNet scribble v1.1 | `lllyasviel/control_v11p_sd15_scribble` | OpenRAIL |
+| rembg `isnet-general-use` | danielgatis/rembg | MIT library, model terms to confirm |
+
+The test set is twelve single-object sketches that team members drew or photographed, in `samples/sketches/`. They mix clean marker, messy pencil, thick brush and photographed paper, and two are deliberately bad. TODO count and describe the final set.
 
 Draft facts
 
 ## Model architecture
+
+TripoSR has a DINO ViT-B/16 image encoder, a 16 layer transformer that produces a triplane, and a small NeRF MLP. We sample its density on a grid and run marching cubes. The weights are 1.68 GB. The model has no sampling step, so the seed does not change its output. Variation between runs comes from the sketch-to-image stage.
+
+The generate stage runs SD 1.5 (20 steps in our first run) with a ControlNet scribble branch. ControlNet was trained with 50% empty prompts, so a sketch works without text.
 
 Draft facts
 
@@ -34,7 +65,9 @@ Draft facts
 
 ## Evaluation metrics
 
-Silhouette IoU against the cleaned sketch mask, time per model, peak memory, failure rate on the 12 test sketches.
+Silhouette IoU is the headline number. We render the mesh outline orthographically, crop both the outline and the cleaned sketch mask to their bounding boxes, and divide the overlap by the union. Cropping makes the score ignore scale and position. Unit tests pin it: a unit cube against a square mask scores above 0.97. We also report seconds per stage, peak VRAM and the failure rate on the twelve test sketches.
+
+IoU is a simple checkable proxy for sketch fidelity, not a perceptual score. No accepted automatic metric exists for this task. TripoSR returns no camera, so a raw IoU at a fixed view can undercount a good mesh. We plan to also report aligned IoU and best IoU over a small grid of views.
 
 Draft facts
 
@@ -45,6 +78,20 @@ Draft facts
 - There is no accepted automatic metric for sketch simplification, and papers use visual comparison or user studies (Xu et al., TPAMI 2023, p. 295). Silhouette IoU is a simple checkable proxy, not a perceptual score.
 
 ## Results and analysis
+
+All numbers below are measured and come from `EXPERIMENTS.md`.
+
+| Run | Machine | Time | Memory |
+| --- | --- | --- | --- |
+| TripoSR, grid 192, CPU | M2 MacBook Air | 32.9 s | 5.6 GB RAM |
+| TripoSR, grid 192, CPU | Linux laptop | 22.5 s | not measured |
+| TripoSR, grid 256, CPU | M2 MacBook Air | 112.1 s | 8.6 GB RAM |
+| TripoSR, grid 256, GPU | GTX 1650 Ti | 5.4 s | 2370 MB VRAM |
+| Full pipeline, sketch stages stubbed | GTX 1650 Ti | 14 s cold, 6.6 s warm | 2370 MB VRAM |
+
+Grid 256 on CPU takes 3.4 times as long as grid 192, so the CPU default is 192. The same chair gives 22,779 vertices on both CPUs, so the CPU path is deterministic across machines. On the GPU a chunked density query keeps TripoSR at 2370 MB, well under the 6 GB we first expected.
+
+TODO the full pipeline on the RunPod GPU, the generate stage on CPU, and mean silhouette IoU over the test set. These runs were not finished when this draft was written.
 
 Draft facts
 
@@ -57,6 +104,12 @@ Draft facts
 
 ## What did not work and how we recovered
 
+- The TripoSR checkpoint failed to load under transformers 5, which renamed the ViT layers. We rename the keys while loading instead of pinning the old library.
+- The first marching cubes swap produced inward-facing triangles. A sphere test with negative volume caught it, and `gradient_direction="descent"` fixed it.
+- TripoSR's frame is Z up with the front on +X. We found this by rendering the mesh from three sides and rotate to glTF axes in `finalize_mesh`.
+- The generate stage does not fit a 4 GB card. fp16 returned a black frame after 92 s, and the fp32 retry ran out of memory because the fp16 pipeline stayed cached (`EXPERIMENTS.md` row 7). The stage runs on a larger GPU, and a fix that frees the fp16 pipeline first is in review.
+- TODO the deliberately bad sketches and what we changed to recover them.
+
 Draft facts
 
 - 31 Oct 16:45 (Swayam) First load of the TripoSR checkpoint failed. The weights use the transformers 4.35 names for the ViT layers (`encoder.layer.N.attention.attention.query`) and the locked transformers 5 renamed them (`layers.N.attention.q_proj`). We rename the checkpoint keys while loading instead of pinning the old library.
@@ -64,5 +117,7 @@ Draft facts
 - 31 Oct 16:45 (Swayam) Upstream downloads `facebook/dino-vitb16/config.json` at load time. We inline the config so a run needs no network after the weights are in place.
 
 ## Real-world application
+
+The output is a standard `.glb` with vertex colours, so it drops into Blender, a game engine or a 3D printing slicer. A designer can block out props from a napkin sketch and refine the mesh by hand. An art teacher can show students what a drawing looks like in 3D. The limits matter for these uses. The back of the object is a model guess, and the mesh is a starting point for an artist, not a finished asset.
 
 Draft facts
