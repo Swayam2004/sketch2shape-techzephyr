@@ -23,6 +23,7 @@ from typing import Annotated
 import torch
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from PIL import Image, UnidentifiedImageError
 
 from sketch2shape.pipeline import run, select_device
@@ -216,6 +217,9 @@ def create_app(
     @app.get("/", include_in_schema=False)
     def dashboard() -> FileResponse:
         return FileResponse(STATIC_DIR / "index.html")
+
+    # Serves the vendored model-viewer script so the 3D view works without internet.
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     @app.get("/v1/health")
     def health() -> dict:
