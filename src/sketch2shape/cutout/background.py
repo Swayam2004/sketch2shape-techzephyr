@@ -30,8 +30,12 @@ def _session():
     return new_session(MODEL_NAME, providers=["CPUExecutionProvider"])
 
 
-def center_object(rgba: Image.Image, ratio: float = FOREGROUND_RATIO) -> Image.Image:
-    """Crop to the object, then paste it centred so its longer side is `ratio` of the frame."""
+def center_object(rgba: Image.Image, ratio: float | None = None) -> Image.Image:
+    """Crop to the object, then paste it centred so its longer side is `ratio` of the frame.
+
+    `ratio` defaults to FOREGROUND_RATIO, read at call time so tune.py can vary it.
+    """
+    ratio = FOREGROUND_RATIO if ratio is None else ratio
     alpha = np.asarray(rgba)[..., 3]
     ys, xs = np.nonzero(alpha > ALPHA_THRESHOLD)
     if len(xs) == 0:
