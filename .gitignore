@@ -22,3 +22,7 @@ outputs/
 
 # downloaded research PDFs, copyrighted and 200+ MB
 papers/
+
+# Only the final report PDF is tracked in report/
+report/*
+!report/2D or not 2D.pdf

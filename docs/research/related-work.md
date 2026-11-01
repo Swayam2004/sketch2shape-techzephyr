@@ -1,6 +1,6 @@
 # Related work
 
-Draft for `REPORT.md`, 31 Oct 2026. Disha rewrites it after the freeze. Each citation was checked against the first page of the PDF. Papers marked "abstract only" were not read past the first page, so no numbers from them are used. Page numbers are in `papers-review.md`.
+Draft notes for the report, 31 Oct 2026. Each citation was checked against the first page of the PDF. Papers marked "abstract only" were not read past the first page, so no numbers from them are used. Page numbers are in `papers-review.md`.
 
 ## Feed-forward image-to-3D
 
