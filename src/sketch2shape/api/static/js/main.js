@@ -1,15 +1,15 @@
-// Wires the components together: SketchCanvas, CenterStage, PipelineTracker, StatusTicker,
+// Wires the components together: SketchCanvas, CenterStage, History, StatusTicker,
 // DoodleLayer and the result viewer controls. The only backend call goes through api.js.
 import { store, STAGES, reducedMotion, isMobile } from "./store.js";
 import { detectBackend, runPipeline, createEstimator, PipelineError, Cancelled } from "./api.js";
-import { createSketch, INKS } from "./sketch.js";
+import { createSketch, INKS, BRUSHES, WEIGHTS } from "./sketch.js";
+import { history, toResult } from "./history.js";
 import { createStage } from "./stage.js";
-import { startBoil, boom, sticker, createScribbleLayer, buildScraps, buildHead, el } from "./doodles.js";
+import { startBoil, boom, sticker, createScribbleLayer, buildScraps, buildHead } from "./doodles.js";
 import { createPipebar } from "./pipebar.js";
 import { rustle, pop } from "./audio.js";
 
 const $ = (id) => document.getElementById(id);
-const rnd = (a, b) => a + Math.random() * (b - a);
 
 // ---------------------------------------------------------------- torn paper edges
 function tornEdge(node, seed) {
@@ -44,20 +44,37 @@ const sketch = createSketch($("pad"), {
 });
 const scribbles = createScribbleLayer($("canvasWrap"));
 
+const press = (group, active) => [...group.children].forEach((x) => { x.setAttribute("aria-pressed", String(x === active)); x.classList.toggle("on", x === active); });
 const inks = $("inks");
 INKS.forEach((c, i) => {
   const b = document.createElement("button");
   b.type = "button"; b.style.background = c; b.setAttribute("aria-label", `Ink ${i + 1}`); b.setAttribute("aria-pressed", String(i === 0));
-  b.onclick = () => { sketch.setInk(c); setTool("pen"); [...inks.children].forEach((x) => x.setAttribute("aria-pressed", String(x === b))); };
+  b.onclick = () => { sketch.setInk(c); showTool(sketch.tool); press(inks, b); };
   inks.appendChild(b);
 });
-function setTool(t) {
-  sketch.setTool(t);
-  for (const id of ["pen", "eraser"]) { $(id).classList.toggle("on", id === t); $(id).setAttribute("aria-pressed", String(id === t)); }
+// Four brush types and four weights. The eraser is a tool of its own and uses the same weight times four.
+const brushes = $("brushes");
+BRUSHES.forEach((br, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "tool"; b.textContent = br.label; b.title = br.hint; b.dataset.brush = br.id;
+  b.onclick = () => { sketch.setTool(br.id); showTool(br.id); };
+  brushes.appendChild(b);
+});
+const weights = $("weights");
+WEIGHTS.forEach((w, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.setAttribute("aria-label", `Stroke weight ${i + 1} of ${WEIGHTS.length}`); b.title = `${w} px`;
+  b.innerHTML = `<i style="width:${4 + w * 0.7}px;height:${4 + w * 0.7}px"></i>`;
+  b.onclick = () => { sketch.setWidth(w); press(weights, b); };
+  weights.appendChild(b);
+});
+press(weights, weights.children[1]);
+function showTool(t) {
+  for (const b of brushes.children) { const on = b.dataset.brush === t; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); }
+  $("eraser").classList.toggle("on", t === "eraser"); $("eraser").setAttribute("aria-pressed", String(t === "eraser"));
 }
-$("pen").onclick = () => setTool("pen");
-$("eraser").onclick = () => setTool("eraser");
-$("size").oninput = (e) => sketch.setWidth(+e.target.value);
+showTool("pen");
+$("eraser").onclick = () => { sketch.setTool("eraser"); showTool("eraser"); };
 $("undo").onclick = () => sketch.undo();
 $("clear").onclick = () => sketch.clear();
 $("file").onchange = (e) => { sketch.loadFile(e.target.files[0]); e.target.value = ""; };
@@ -78,50 +95,6 @@ const stage = createStage({
   onStars: (n) => { store.set({ stars: n }); $("starsN").textContent = n; },
 });
 
-// ---------------------------------------------------------------- tracker (stair-step path and paper doll)
-const STEP_COLS = ["--sky", "--sage", "--mustard", "--terra", "--magenta"];
-function buildTracker() {
-  const box = $("stairs");
-  const svg = el("svg", { viewBox: "0 0 270 250", role: "img", "aria-label": "Five stairs. A paper doll climbs one stair per finished stage." });
-  box.appendChild(svg);
-  const stepX = (i) => 6 + i * 50, stepY = (i) => 196 - i * 40;
-  STAGES.forEach((s, i) => {
-    const x = stepX(i), y = stepY(i);
-    el("path", { d: `M${x} ${y + 2} L${x + 46} ${y + 2 + rnd(-2, 2)} L${x + 46} 244 L${x} 244 Z`, class: "step-rect", style: `fill:var(${STEP_COLS[i]})` }, svg);
-    el("path", { d: `M${x} ${y + 2} l46 0 l0 242 l-46 0Z`, fill: "url(#ht)", opacity: ".25" }, svg);
-    const t = el("text", { x: x + 4, y: y + 18, class: "step-label" }, svg); t.textContent = s.short;
-    const g = el("g", { id: `tick${i}`, opacity: "0" }, svg);
-    el("path", { d: `M${x + 12} ${y + 30} l8 9 l16 -20`, class: "tick", pathLength: 1 }, g);
-  });
-  el("path", { d: `M${stepX(4) + 6} ${stepY(4) - 6} l0 -26`, class: "stroke", style: "stroke:var(--ink);stroke-width:3" }, svg);
-  el("polygon", { points: `${stepX(4) + 6},${stepY(4) - 32} ${stepX(4) + 32},${stepY(4) - 24} ${stepX(4) + 6},${stepY(4) - 16}`, style: "fill:var(--magenta);stroke:var(--ink);stroke-width:2.5" }, svg);
-  const doll = el("g", { class: "doll still", id: "doll" }, svg);
-  const bob = el("g", { class: "bob" }, doll);
-  el("circle", { cx: 0, cy: -36, r: 8, fill: "var(--cream)" }, bob);
-  el("path", { d: "M0 -28 L0 -12 M-9 -22 L9 -18 M0 -12 L-7 0 M0 -12 L7 0", fill: "none" }, bob);
-  el("path", { d: "M-6 -43 q6 -9 12 0", fill: "var(--ink)" }, bob);
-  const place = (i) => {
-    const x = i < 0 ? -2 : i >= STAGES.length ? stepX(4) + 22 : stepX(i) + 24;
-    const y = i < 0 ? 244 : i >= STAGES.length ? stepY(4) - 2 : stepY(i) + 2;
-    doll.style.transform = `translate(${x}px, ${y}px)`;
-  };
-  place(-1);
-  const list = $("stageList");
-  list.innerHTML = STAGES.map((s, i) => `<li data-i="${i}">${i + 1}. ${s.label}</li>`).join("");
-  return {
-    set(shown, running) {
-      place(shown);
-      doll.classList.toggle("still", !running);
-      STAGES.forEach((_, i) => {
-        const g = $(`tick${i}`), done = i < shown;
-        if (done && g.getAttribute("opacity") === "0") { g.setAttribute("opacity", "1"); g.firstChild.classList.add("draw"); }
-        if (!done) { g.setAttribute("opacity", "0"); g.firstChild.classList.remove("draw"); }
-      });
-      list.querySelectorAll("li").forEach((li, i) => { li.classList.toggle("done", i < shown); li.classList.toggle("active", running && i === shown); });
-    },
-  };
-}
-const tracker = buildTracker();
 const pipe = createPipebar($("pipebar"));
 
 // ---------------------------------------------------------------- status ticker (typewriter phrases)
@@ -152,7 +125,6 @@ const wrap = $("stageWrap");
 function applyShown(i) {
   shown = i; stageSince = performance.now();
   stage.setStage(i);
-  tracker.set(i, store.get().phase === "running");
   if (store.get().phase === "running") pipe.set({ shown: i, within: est?.within() || 0, state: "running" });
   $("canvasWrap").classList.toggle("scanning", store.get().phase === "running" && i <= 1);
   $("refine").hidden = !(store.get().phase === "running" && i === 3);
@@ -176,7 +148,7 @@ function resetUI() {
   $("tearImg").hidden = true; $("canvasWrap").classList.remove("scanning");
   $("go").hidden = false; $("cancel").hidden = true;
   scribbles.setEnabled(false);
-  shown = 0; target = 0; tracker.set(-1, false); pipe.reset();
+  shown = 0; target = 0; pipe.reset();
   host.replaceChildren();
 }
 
@@ -188,6 +160,7 @@ function showBanner(list) {
 
 async function start() {
   const blob = await sketch.toBlob();
+  lastSketch = Promise.resolve(blob);
   stage.reset(); resetUI(); scribbles.clear();
   const health = backend.health;
   store.set({ phase: "running", stage: 0, progress: 0.02, error: null, result: null, warnings: [], stars: 0 });
@@ -251,8 +224,9 @@ function tearWipe(snapshot) {
   });
 }
 
-let current = null;
-async function finish(result) {
+let current = null, lastSketch = null;
+// `saved` is true when the design comes from history, so it is not stored a second time.
+async function finish(result, { saved = false } = {}) {
   current = result;
   clearInterval(uiTimer); setProgress(1);
   await stage.showResult(result, tearWipe);
@@ -260,11 +234,11 @@ async function finish(result) {
   store.set({ phase: "done", result });
   wrap.classList.remove("busy"); wrap.classList.add("done");
   $("canvasWrap").classList.remove("scanning"); scribbles.setEnabled(false);
-  tracker.set(STAGES.length, false);
   pipe.set({ shown: STAGES.length, state: "done" });
   $("refine").hidden = true; $("stickerHint").hidden = true; $("starsBox").hidden = true;
   $("resultBar").hidden = false;
   $("dlObj").disabled = result.kind === "files" && !result.obj;
+  $("dlPng").disabled = false;
   const secs = (result.timings || []).reduce((a, t) => a + t.seconds, 0);
   $("info").textContent = [
     result.device ? `device ${result.device}` : "", secs ? `${secs.toFixed(1)} s in the pipeline` : "",
@@ -275,6 +249,7 @@ async function finish(result) {
   boom(host, r.width / 2, r.height * 0.3, "BOOM!");
   $("go").hidden = false; $("cancel").hidden = true; updateGo();
   msg("Done. Orbit it, switch the look, download it.");
+  if (!saved && result.kind === "files") remember(result);
 }
 
 function fail(text) {
@@ -310,14 +285,68 @@ function save(blobOrUrl, name) {
 }
 async function download(fmt) {
   try {
-    // Real results come from the server. The browser exports only the formats the server does not make, and the mock shape.
-    if (current?.kind === "files" && fmt !== "stl") { const u = current[fmt]; if (u) return save(u, `sketch2shape.${fmt}`); }
+    if (fmt === "png") return save(await stage.snapshot(), "sketch2shape.png");
+    // Real results come from the server. The browser exports only the mock shape.
+    if (current?.kind === "files") { const u = current[fmt]; if (u) return save(u, `sketch2shape.${fmt}`); }
     save(await stage.exportAs(fmt), `sketch2shape.${fmt}`);
   } catch (e) { msg(`Export failed: ${e.message}`); }
 }
 $("dlGlb").onclick = () => download("glb");
 $("dlObj").onclick = () => download("obj");
-$("dlStl").onclick = () => download("stl");
+$("dlPng").onclick = () => download("png");
+
+// ---------------------------------------------------------------- history (right panel)
+const ago = (t) => {
+  const m = Math.round((Date.now() - t) / 60000);
+  return m < 1 ? "just now" : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`;
+};
+let historyOk = true;
+const thumbUrls = [];
+async function renderHistory() {
+  const list = $("histList");
+  let items = [];
+  try { items = await history.list(); } catch { historyOk = false; }
+  thumbUrls.splice(0).forEach(URL.revokeObjectURL);
+  list.replaceChildren();
+  $("histClear").hidden = items.length === 0;
+  $("histNote").textContent = !historyOk ? "This browser blocks local storage, so designs are not kept."
+    : items.length ? "Kept in this browser only. Click one to open it." : "Nothing yet. Designs you make are kept in this browser only.";
+  for (const it of items) {
+    const li = document.createElement("li");
+    const open = document.createElement("button");
+    open.type = "button"; open.className = "hist-open";
+    const url = URL.createObjectURL(it.thumb || it.sketch); thumbUrls.push(url);
+    open.innerHTML = `<img alt="" src="${url}"><span class="hand"></span><small class="type"></small>`;
+    open.querySelector("span").textContent = it.prompt || "no prompt";
+    open.querySelector("small").textContent = ago(it.createdAt);
+    open.setAttribute("aria-label", `Open design ${it.prompt || "with no prompt"}, ${ago(it.createdAt)}`);
+    open.onclick = () => openDesign(it);
+    const del = document.createElement("button");
+    del.type = "button"; del.className = "hist-del"; del.textContent = "x"; del.setAttribute("aria-label", "Delete this design");
+    del.onclick = async () => { await history.remove(it.id); renderHistory(); };
+    li.append(open, del);
+    list.appendChild(li);
+  }
+}
+// Store the finished design with a small picture of the model. A failed save must not break the result screen.
+async function remember(result) {
+  try {
+    const [sketchBlob, thumb] = await Promise.all([lastSketch, stage.snapshot(220)]);
+    await history.add({ result, sketch: sketchBlob, thumb, prompt: $("prompt").value.trim(), seed: +$("seed").value || 0 });
+  } catch (e) { console.warn("history save failed", e); historyOk = false; }
+  renderHistory();
+}
+async function openDesign(it) {
+  if (store.get().phase === "running") { msg("Wait for the current job, or stop it first."); return; }
+  stage.reset(); resetUI(); scribbles.clear();
+  await sketch.loadFile(it.sketch);
+  $("prompt").value = it.prompt || ""; $("seed").value = it.seed ?? 0;
+  store.set({ phase: "running" }); // finish() expects a run in progress
+  await finish(toResult(it), { saved: true });
+  msg("Opened from history. Press make it 3D to run it again.");
+}
+$("histClear").onclick = async () => { if (confirm("Delete every saved design from this browser?")) { await history.clear(); renderHistory(); } };
+renderHistory();
 
 // ---------------------------------------------------------------- vibe, sound, health
 const THEMES = ["cream", "tan", "navy", "magenta"];

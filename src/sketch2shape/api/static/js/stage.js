@@ -4,7 +4,6 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
-import { STLExporter } from "three/addons/exporters/STLExporter.js";
 import { OBJExporter } from "three/addons/exporters/OBJExporter.js";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 import { TIME, DPR, CELL, palette, toon, outlineMaterial, dotMaterial, withOutline } from "./shaders.js";
@@ -490,13 +489,28 @@ export function createStage({ canvas, getMask, onBoom, onSticker, onStars }) {
     // For the browser console while debugging.
     debug: () => ({ experience, kind: content?.kind, mode: content?.mode, name: content?.name, interlude: interludeUntil > performance.now(), root: root.children.map((c) => `${c.type}/${c.children.length}/${c === result?.group ? "result" : c === content?.group ? "content" : "orphan"}`) }),
     pause(v) { paused = v; },
+    // PNG of the stage as it looks now, with a transparent background. `maxSide` shrinks it for thumbnails.
+    // Confetti and stars sit in `extras`, so they are hidden for the frame.
+    async snapshot(maxSide = 0) {
+      if (!result) throw new Error("There is no mesh to capture yet.");
+      extras.visible = false;
+      renderer.render(scene, camera);
+      const url = canvas.toDataURL("image/png"); // must be read in the same task as the render
+      extras.visible = true;
+      if (!maxSide || Math.max(canvas.width, canvas.height) <= maxSide) return (await fetch(url)).blob();
+      const k = maxSide / Math.max(canvas.width, canvas.height);
+      const small = document.createElement("canvas");
+      small.width = Math.round(canvas.width * k); small.height = Math.round(canvas.height * k);
+      const img = new Image(); img.src = url; await img.decode();
+      small.getContext("2d").drawImage(img, 0, 0, small.width, small.height);
+      return new Promise((res) => small.toBlob(res, "image/png"));
+    },
     async exportAs(fmt) {
       if (!result) throw new Error("There is no mesh to export yet.");
       const g = result.group; g.updateMatrixWorld(true);
       // Export the clean meshes, not the hidden outline hulls.
       const clone = g.clone(true);
       const kill = []; clone.traverse((n) => { if (n.userData?.isOutline) kill.push(n); }); kill.forEach((n) => n.parent.remove(n));
-      if (fmt === "stl") return new Blob([new STLExporter().parse(clone, { binary: true })], { type: "model/stl" });
       if (fmt === "obj") return new Blob([new OBJExporter().parse(clone)], { type: "text/plain" });
       const buf = await new GLTFExporter().parseAsync(clone, { binary: true });
       return new Blob([buf], { type: "model/gltf-binary" });

@@ -67,7 +67,10 @@ button, input, summary { font:inherit; color:inherit; }
 .inks { display:inline-flex; gap:4px; }
 .inks button { width:22px; height:22px; border-radius:50%; border:2.5px solid var(--ink); cursor:pointer; padding:0; }
 .inks button[aria-pressed="true"] { outline:3px solid var(--mustard); outline-offset:1px; }
-.size input { width:70px; accent-color:var(--magenta); }
+.brushes, .weights { display:inline-flex; gap:4px; align-items:center; }
+.weights button { width:28px; height:28px; display:grid; place-items:center; padding:0; cursor:pointer; background:var(--cream); border:2.5px solid var(--ink); border-radius:50%; }
+.weights button i { display:block; border-radius:50%; background:var(--ink); }
+.weights button[aria-pressed="true"] { background:var(--mustard); box-shadow:2px 2px 0 var(--ink); }
 .canvasWrap { position:relative; border:3px solid var(--ink); background:#fff; border-radius:3px; filter:url(#boil); }
 .canvasWrap.drop { outline:4px dashed var(--magenta); }
 #pad { display:block; width:100%; aspect-ratio:1; touch-action:none; cursor:crosshair; }
@@ -159,21 +162,17 @@ button, input, summary { font:inherit; color:inherit; }
 .sticker { animation:stick .35s cubic-bezier(.2,1.6,.4,1); }
 @keyframes stick { from { transform:scale(.2) rotate(var(--tilt)); } }
 
-/* tracker */
-.stairs svg { width:100%; height:auto; overflow:visible; }
-.step-rect { stroke:var(--ink); stroke-width:3; stroke-linejoin:round; }
-.step-label { font-family:var(--hand); font-weight:700; font-size:13px; fill:var(--ink); }
-.tick { fill:none; stroke:var(--ink); stroke-width:5; stroke-linecap:round; stroke-linejoin:round; }
-.doll { transition:transform .9s cubic-bezier(.3,1.5,.5,1); }
-.doll .bob { animation:climb .55s ease-in-out infinite alternate; }
-.doll.still .bob { animation:none; }
-@keyframes climb { to { transform:translateY(-5px) rotate(4deg); } }
-.doll * { stroke:var(--ink); stroke-width:3; stroke-linecap:round; }
-.stage-list { list-style:none; padding:0; margin:8px 0 0; font-size:13px; }
-.stage-list li { padding:3px 0 3px 18px; position:relative; opacity:.55; }
-.stage-list li::before { content:"o"; position:absolute; left:0; font-family:var(--hand); }
-.stage-list li.active { opacity:1; font-weight:700; } .stage-list li.active::before { content:">"; color:var(--magenta); }
-.stage-list li.done { opacity:1; text-decoration:line-through; text-decoration-color:var(--magenta); } .stage-list li.done::before { content:"*"; color:var(--teal); }
+/* history */
+.hist-note { font-size:12px; margin:0 0 8px; }
+.hist-list { list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(2,1fr); gap:10px; max-height:420px; overflow-y:auto; padding:4px 4px 8px 0; }
+.hist-list li { position:relative; }
+.hist-open { width:100%; display:flex; flex-direction:column; gap:2px; text-align:left; cursor:pointer; background:var(--cream); border:2.5px solid var(--ink); border-radius:12px 8px 14px 8px; padding:5px; }
+.hist-open:hover, .hist-open:focus-visible { background:var(--mustard); box-shadow:2px 2px 0 var(--ink); }
+.hist-open img { width:100%; aspect-ratio:1; object-fit:contain; background:repeating-conic-gradient(#0000000d 0 25%, transparent 0 50%) 0 0/14px 14px; border-radius:6px; }
+.hist-open span { font-size:14px; line-height:1.15; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hist-open small { font-size:11px; opacity:.7; }
+.hist-del { position:absolute; top:-6px; right:-6px; width:22px; height:22px; border-radius:50%; border:2px solid var(--ink); background:var(--magenta); color:var(--cream); font:700 12px/1 var(--hand); cursor:pointer; padding:0; }
+.hist-clear { margin-top:10px; }
 .head { width:140px; margin:6px auto 0; cursor:pointer; filter:url(#boil); }
 .head svg { width:100%; display:block; overflow:visible; }
 .head .iris, .head .pupil { transition:transform .1s; }
@@ -186,11 +185,10 @@ button, input, summary { font:inherit; color:inherit; }
 
 /* reduced motion: no jitter, no flashing, calmer transitions */
 @media (prefers-reduced-motion: reduce) {
-  .scrap, .scribble, .doll .bob, .dots i, .canvasWrap.scanning .scan { animation:none !important; }
+  .scrap, .scribble, .dots i, .canvasWrap.scanning .scan { animation:none !important; }
   .canvasWrap, .ring, .doodle, .oops svg, .head, .refine input { filter:none !important; }
   .boom, .sticker, .boom .burst { animation-duration:.01s !important; }
   .boom { animation:none; opacity:1; } .boom .letters { animation:none; }
-  .doll { transition-duration:.2s; }
 }
 
 

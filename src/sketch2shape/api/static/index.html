@@ -50,10 +50,10 @@
   <div class="tear-wrap order-2"><section class="panel sketch" id="sketchPanel" aria-labelledby="h-sketch">
     <h2 id="h-sketch" class="hand">1. your sketch</h2>
     <div class="bar" role="toolbar" aria-label="Drawing tools">
-      <button id="pen" class="tool on" type="button" aria-pressed="true">pen</button>
+      <span id="brushes" class="brushes" role="group" aria-label="Brush type"></span>
       <button id="eraser" class="tool" type="button" aria-pressed="false">eraser</button>
       <span id="inks" class="inks" role="group" aria-label="Ink colour"></span>
-      <label class="size"><span class="sr">Brush size</span><input id="size" type="range" min="2" max="18" value="6"></label>
+      <span id="weights" class="weights" role="group" aria-label="Stroke weight"></span>
       <button id="undo" class="tool" type="button">undo</button>
       <button id="clear" class="tool" type="button">clear</button>
       <label class="tool upload" tabindex="0">upload<input id="file" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
@@ -108,7 +108,7 @@
         <div class="dl">
           <button id="dlGlb" type="button">.glb</button>
           <button id="dlObj" type="button">.obj</button>
-          <button id="dlStl" type="button">.stl</button>
+          <button id="dlPng" type="button" title="A picture of the model as you see it now">.png</button>
           <button id="again" type="button" class="again">new sketch</button>
         </div>
         <div id="info" class="type info"></div>
@@ -127,9 +127,10 @@
 
   <!-- RIGHT: pipeline -->
   <div class="tear-wrap order-3"><aside class="panel track" aria-labelledby="h-track">
-    <h2 id="h-track" class="hand">2. the climb</h2>
-    <div id="stairs" class="stairs"></div>
-    <ol id="stageList" class="type stage-list"></ol>
+    <h2 id="h-track" class="hand">2. history</h2>
+    <p id="histNote" class="type dim hist-note">Designs you make are kept in this browser only.</p>
+    <ul id="histList" class="hist-list"></ul>
+    <button id="histClear" class="tool hist-clear" type="button" hidden>clear history</button>
     <p id="live" class="sr" aria-live="polite"></p>
     <div id="head" class="head" title="Click me"></div>
   </aside></div>
