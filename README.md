@@ -169,4 +169,4 @@ See `AI_USAGE.md`.
 
 ## Team
 
-Himansu Swayam, Dishashree Swain and Udit Arun Nath.
+Swayam Subhankar Sahoo, Dishashree Swain and Udit Arun Nath.
