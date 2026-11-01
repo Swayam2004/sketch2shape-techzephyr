@@ -113,6 +113,10 @@ Draft facts
 
 Draft facts
 
+- 1 Nov 04:05 (Udit) The whole pipeline ran on a Windows laptop with no GPU (Ryzen 7 PRO 7840U, 16 GB) in 305.6 s with 7.23 GB peak RAM (EXPERIMENTS #9). Stable Diffusion with ControlNet took 263.3 s of that, TripoSR 25.6 s, the cutout 8.0 s. A judge on CPU waits about 5 minutes per sketch, which is why the API uses job polling. Best-of-N with N=4 would multiply the generate time to about 18 minutes, past our own 15 minute poll limit.
+
+- 1 Nov 04:40 (Udit) On Swayam's 4 GB GTX 1650 Ti the fp16 Stable Diffusion pass returned a black frame after 92 s, and the fp32 retry then ran out of memory at 3560 MB because the fp16 pipeline was still in the `lru_cache`. The retry now clears the cache, runs `gc.collect()` and empties the CUDA cache first (EXPERIMENTS #7, #8). The VAE also stays in fp32 when the UNet runs in fp16, which is our suspected cause of the black frame. Not yet confirmed on a CUDA card.
+
 - 31 Oct 16:45 (Swayam) First load of the TripoSR checkpoint failed. The weights use the transformers 4.35 names for the ViT layers (`encoder.layer.N.attention.attention.query`) and the locked transformers 5 renamed them (`layers.N.attention.q_proj`). We rename the checkpoint keys while loading instead of pinning the old library.
 - 31 Oct 16:45 (Swayam) First marching cubes swap gave triangles that face inward. A test on a sphere (negative volume) caught it. Switching skimage to `gradient_direction="descent"` fixed it.
 - 31 Oct 16:45 (Swayam) Upstream downloads `facebook/dino-vitb16/config.json` at load time. We inline the config so a run needs no network after the weights are in place.

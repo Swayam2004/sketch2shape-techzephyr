@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import logging
 import os
 import time
@@ -36,6 +37,11 @@ GUIDANCE_SCALE = 7.5
 CONTROLNET_SCALE = 1.0
 
 
+# Set S2S_OFFLOAD=1 to keep the models on the CPU and move each one to the GPU only while it runs.
+# It fits cards under 8 GB at a speed cost. Off by default until EXPERIMENTS.md has the numbers.
+OFFLOAD_ENV = "S2S_OFFLOAD"
+
+
 class ModelFilesMissing(FileNotFoundError):
     """Stable Diffusion or ControlNet weights are not in the weights folder."""
 
@@ -68,7 +74,8 @@ def _model_paths(root: Path) -> tuple[Path, Path]:
     if missing:
         names = ", ".join(str(p) for p in missing)
         raise ModelFilesMissing(
-            f"Missing model files: {names}. Run `uv run python scripts/download_weights.py` first."
+            f"Missing model files: {names}. Run `uv run python scripts/download_weights.py` first. "
+            "It downloads about 7 GB in total and skips files you already have."
         )
     return sd, controlnet
 
@@ -101,7 +108,13 @@ def _load_pipeline(device: Device, fp16: bool) -> StableDiffusionControlNetPipel
     )
     pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
     pipe.set_progress_bar_config(disable=True)
-    if device == "cuda":
+    if fp16:
+        # Suspected cause of the black frame: the VAE decoder overflows to NaN in fp16. It is
+        # 83 M parameters, so 330 MB in fp32 is cheap. _run decodes the latents itself.
+        pipe.vae.to(torch.float32)
+    if device == "cuda" and os.environ.get(OFFLOAD_ENV) == "1":
+        pipe.enable_model_cpu_offload()
+    elif device == "cuda":
         pipe.to("cuda")
     else:
         # Cuts peak RAM on a 16 GB laptop at a small speed cost.
@@ -113,6 +126,20 @@ def _load_pipeline(device: Device, fp16: bool) -> StableDiffusionControlNetPipel
         time.perf_counter() - started,
     )
     return pipe
+
+
+def _release_pipelines(device: Device) -> None:
+    """Drop every cached pipeline and give the GPU memory back before the next load.
+
+    Without this the fp16 pipeline stays in the lru_cache while the fp32 one loads, and a 4 GB
+    card runs out of memory.
+    """
+    _load_pipeline.cache_clear()
+    gc.collect()
+    if device == "cuda":
+        import torch
+
+        torch.cuda.empty_cache()
 
 
 def _run(
@@ -133,8 +160,15 @@ def _run(
         width=IMAGE_SIZE,
         height=IMAGE_SIZE,
         generator=generator,
+        output_type="latent",
     )
-    return out.images[0].convert("RGB")
+    # Decode here instead of inside the pipeline so the VAE can run in fp32 while the UNet and
+    # ControlNet stay in fp16. For an fp32 pipeline this is the same maths as the default path.
+    with torch.no_grad():
+        latents = out.images.to(device=pipe._execution_device, dtype=pipe.vae.dtype)
+        decoded = pipe.vae.decode(latents / pipe.vae.config.scaling_factor, return_dict=False)[0]
+    image = pipe.image_processor.postprocess(decoded, output_type="pil")[0]
+    return image.convert("RGB")
 
 
 def sketch_to_image(
@@ -152,6 +186,7 @@ def sketch_to_image(
     if use_fp16 and is_degenerate(image):
         # GTX 16xx cards overflow in fp16 and return black frames.
         log.warning("generate: fp16 output is black or flat, retrying in fp32")
+        _release_pipelines(device)
         image = _run(_load_pipeline(device, False), sketch, full_prompt, seed)
     if is_degenerate(image):
         raise RuntimeError(
