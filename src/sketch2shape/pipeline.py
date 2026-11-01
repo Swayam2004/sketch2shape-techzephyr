@@ -16,7 +16,7 @@ import trimesh
 from PIL import Image
 
 from sketch2shape.cutout import remove_background
-from sketch2shape.eval import select_best_candidate
+from sketch2shape.eval import Selection, select_best_candidate
 from sketch2shape.export import finalize_mesh, save_mesh, validate_mesh
 from sketch2shape.reconstruct import image_to_mesh
 from sketch2shape.types import (
@@ -160,24 +160,46 @@ def run(
         if not kept:
             raise ValueError("Every candidate came back empty after background removal.")
         pick = None
-        if len(kept) > 1:
+        if len(kept) > 1 and not stages.iou:
             pick = select_best_candidate(prepared.mask, [rgba for _, _, rgba in kept])
-    won = kept[pick.index if pick else 0]
-    seed, image, rgba = won
-    if pick:
+    meshes: list[trimesh.Trimesh] = []
+    mesh_scores: dict[int, float] = {}
+    with _timed(timings, "reconstruct", device, on_stage):
+        if stages.iou and len(kept) > 1:
+            # The cut-out outline can match the sketch while TripoSR still builds a thin or
+            # tilted mesh from it, so the mesh score decides. Costs one extra reconstruction
+            # per candidate, about 2 s each on a GPU.
+            for seed_i, _, rgba_i in kept:
+                mesh_i = finalize_mesh(image_to_mesh(rgba_i, seed_i, device))
+                meshes.append(mesh_i)
+                mesh_scores[seed_i] = stages.iou(mesh_i, prepared.mask)
+            best = max(range(len(kept)), key=lambda i: (mesh_scores[kept[i][0]], -i))
+            logger.info(
+                "chose seed %d, 3D IoU by seed %s",
+                kept[best][0],
+                {k: round(v, 3) for k, v in mesh_scores.items()},
+            )
+            pick = Selection(best, tuple(mesh_scores.values()))
+        else:
+            won_i = pick.index if pick else 0
+            raw = image_to_mesh(kept[won_i][2], kept[won_i][0], device)
+    won_i = pick.index if pick else 0
+    seed, image, _ = kept[won_i]
+    if pick and not meshes:
         scores = {k[0]: round(sc, 3) for k, sc in zip(kept, pick.scores, strict=True)}
         logger.info("chose seed %d, 2D IoU by seed %s", seed, scores)
     out_dir.mkdir(parents=True, exist_ok=True)
     generated_path = out_dir / f"{stem}_generated.png"
     image.save(generated_path)
-    with _timed(timings, "reconstruct", device, on_stage):
-        raw = image_to_mesh(rgba, seed, device)
     with _timed(timings, "export", device, on_stage):
-        mesh = finalize_mesh(raw)
+        mesh = meshes[won_i] if meshes else finalize_mesh(raw)
         paths = save_mesh(mesh, out_dir, stem)
         report = validate_mesh(paths.glb)
 
-    iou = stages.iou(mesh, prepared.mask) if stages.iou else None
+    if meshes:
+        iou: float | None = mesh_scores[seed]
+    else:
+        iou = stages.iou(mesh, prepared.mask) if stages.iou else None
     if not report.ok:
         warnings.append("Mesh validation failed: " + "; ".join(report.errors))
     return GenerationResult(
