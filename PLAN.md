@@ -34,15 +34,16 @@ Each stage is one function with a typed input and output, so a model swap never 
 
 All three tiers run the same pipeline with the same default settings, so results match.
 
-1. Hosted link. Gradio on Modal, with a queue, a rate limit and a throwaway access code. Shutdown date is announced and can be extended from the backend.
-2. Local run with an NVIDIA GPU. `scripts/setup.*`, then one run command. The app detects CUDA and uses it.
-3. Local run on CPU. Same models, slower. The UI warns that it will take a while. This tier is mandatory.
+1. Local run with an NVIDIA GPU. `scripts/setup.*`, then one run command. The app detects CUDA and uses it.
+2. Local run on CPU. Same models, slower. The UI warns that it will take a while. This tier is mandatory.
+
+No hosted link. The organisers said a localhost run plus a 2 to 3 minute demo video is enough (D25 in `CONTEXT.md`).
 
 ## Compute
 
 - Dev GPU now. One shared RunPod Secure Cloud pod, L4 first (about 1,300 INR for 24 hours, 4090 about 1,900), with a 50 GB network volume. Udit's international card pays. Everyone connects over SSH. Steps in `docs/guides/runpod-dev-gpu.md`.
 - AWS credits (about $100 per person, 136 to 146 days left). Optional and Swayam-only, for cheap demo hosting. Needs a Paid plan upgrade and a G-instance quota request. Steps in `docs/guides/aws-gpu-optional.md`. Stop after 30 minutes if it stalls.
-- Hosted demo priority. Modal first, then a free ZeroGPU Space with a static page of samples, then a paid HF T4 Space. See D15 in `CONTEXT.md`. Judging lasts 5 to 6 days, so nothing runs always-on on a GPU. Hosted proxies cut calls at 100 to 150 seconds, so the API uses job polling.
+- No hosted demo (D25). Nothing runs on a GPU during judging. The API still uses job polling because the dev pod proxy cuts calls at 100 seconds.
 - Extra spend cap of 1,500 to 2,000 INR combined.
 - Research behind this is in `docs/research/`. All claims there are agent-reported unless marked verified.
 
@@ -68,7 +69,7 @@ Full detail per person in `docs/tasks/`. Every session starts and ends with the 
 | 19:00 | SD stage works on the pod (Udit). UI runs on the stub client (Disha). Cutout, export and validate merged (Swayam) |
 | 20:00 | Full chain via CLI on the pod. API answering |
 | 21:00 | Eval harness scores the test set. First README pass |
-| 23:00 | Hosted URL on Modal. UI talks to the real API |
+| 23:00 | UI talks to the real API |
 | 23:00 to 04:00 | Quality loop on the test set. Blender add-on v0 by 03:00 if the core is green |
 | 08:00 | Code freeze. Only bug fixes and docs |
 | 09:00 | Demo video recorded |
@@ -87,7 +88,7 @@ From the rulebook (sections 6 and 9) and the problem statement. See D12 and D13 
 - [ ] Time to generate a model, hardware used, limitations, in the README
 - [ ] Slides (rulebook asks for them even though judging is offline, confirm with organisers)
 - [ ] Demo video
-- [ ] Hosted demo link and a throwaway access code in the submission
+- [ ] Demo video link (2 to 3 minutes, shows a localhost run and the architecture)
 - [ ] `AI_USAGE.md` complete
 
 ## Documentation owed from hour 1

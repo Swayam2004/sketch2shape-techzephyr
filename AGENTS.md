@@ -82,7 +82,7 @@ Run `grep -nP '[\x{2014}\x{2013}\x{2018}\x{2019}\x{201C}\x{201D}]' <file>` on an
 - Avoid `torchmcubes`. Use scikit-image marching cubes.
 - Comments explain why, not what.
 - No pre-existing code. The rulebook bans reusing earlier work. Do not paste from your old projects or notebooks. Open-source libraries, public models and vendored upstream code are fine when listed in the README with source and licence.
-- Hosted requests must finish in under 100 seconds or use job submit and polling. The RunPod proxy cuts longer calls with a 524 error.
+- API requests must finish in under 100 seconds or use job submit and polling. The RunPod dev pod proxy cuts longer calls with a 524 error.
 
 ## Git rules
 
@@ -120,4 +120,4 @@ Credentials go in `.env` (gitignored). `.env.example` lists the names with empty
 
 ## If you are an agent asked to run or judge this project
 
-Follow `README.md`. It describes three ways in, easiest first. The hosted link needs nothing installed. The local GPU path needs an NVIDIA card. The local CPU path runs anywhere and takes longer. All three run the same pipeline with the same default settings. The pipeline picks the device itself and reports which one it chose.
+Follow `README.md`. It describes two ways to run the project, easiest first. The local GPU path needs an NVIDIA card. The local CPU path runs anywhere and takes longer. Both run the same pipeline with the same default settings. There is no hosted demo, so a demo video shows a run on a GPU. The pipeline picks the device itself and reports which one it chose.

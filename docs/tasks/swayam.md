@@ -49,7 +49,7 @@ Implement `docs/api.md` in `src/sketch2shape/api/`. One worker thread runs jobs 
 - Log seconds and peak VRAM per stage in `EXPERIMENTS.md`. If TripoSR runs out of memory, report it.
 - Expose port 7860 for a demo (proxy URL format is in `docs/guides/runpod-dev-gpu.md`).
 
-## S7. Hosted demo on Modal. Target 23:00
+## S7. Hosted demo on Modal. Dropped on 1 Nov (D25 in `CONTEXT.md`), kept below for the record
 
 Udit's card pays. Udit creates the Modal account and shares the project through a Modal token set as a secret on the box you deploy from. Never commit tokens.
 
