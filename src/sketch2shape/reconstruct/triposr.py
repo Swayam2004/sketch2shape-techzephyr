@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 from functools import lru_cache
 from pathlib import Path
@@ -22,8 +23,9 @@ logger = logging.getLogger(__name__)
 # S2). Revisit with the team if the CPU number in EXPERIMENTS.md says otherwise. Override with
 # the `resolution` argument.
 MC_RESOLUTION: dict[str, int] = {"cuda": 256, "cpu": 192}
-# Density level of the surface. 25 is the upstream default.
-MC_THRESHOLD = 25.0
+# Density level of the surface. 25 is the upstream default. Higher cuts uncertain density, which
+# removes thin melted blobs on the hidden side. S2S_MC_THRESHOLD lets you try values without edits.
+MC_THRESHOLD = float(os.environ.get("S2S_MC_THRESHOLD", "25.0"))
 # TripoSR was trained on objects composited over mid grey.
 BACKGROUND_GREY = 0.5
 # Grid points per MLP call. Upstream defaults to 8192 in its CLI, the library default of 0 sends

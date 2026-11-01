@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +12,8 @@ import trimesh
 from sketch2shape.types import ExportPaths, ValidationReport
 
 logger = logging.getLogger(__name__)
+
+_SMOOTH_ITERS = int(os.environ.get("S2S_SMOOTH_ITERS", "10"))
 
 # TripoSR has Z up and the object front on +X. glTF has Y up and the front on +Z.
 # (x, y, z) -> (y, z, x) is a proper rotation (determinant +1), so faces keep their winding.
@@ -49,6 +52,12 @@ def finalize_mesh(mesh: trimesh.Trimesh) -> trimesh.Trimesh:
         logger.info("Kept the largest of %d components (%d faces)", len(parts), len(out.faces))
     if len(out.faces) == 0:
         raise InvalidMeshError("The mesh has no faces left after cleanup.")
+
+    # The hidden side comes from a guessed density field, so marching cubes turns noise into
+    # bumps there. Taubin smoothing evens them out without shrinking the whole mesh. Set
+    # S2S_SMOOTH_ITERS=0 to turn it off and compare.
+    if _SMOOTH_ITERS > 0:
+        trimesh.smoothing.filter_taubin(out, iterations=_SMOOTH_ITERS)
 
     out.apply_transform(_TRIPOSR_TO_GLTF)
     lo, hi = out.bounds

@@ -78,3 +78,45 @@ def test_validate_flags_missing_colours(tmp_path) -> None:
     report = validate_mesh(path)
     assert not report.has_vertex_colors
     assert not report.ok
+
+
+def _bumpy_sphere() -> trimesh.Trimesh:
+    sphere = trimesh.creation.icosphere(subdivisions=3, radius=1.0)
+    rng = np.random.default_rng(0)
+    # Push each vertex along its normal by a random amount, like noisy density on the hidden side.
+    sphere.vertices = sphere.vertices + sphere.vertex_normals * rng.normal(0, 0.03, (len(sphere.vertices), 1))
+    sphere.visual.vertex_colors = np.tile([10, 120, 200, 255], (len(sphere.vertices), 1))
+    return sphere
+
+
+def _roughness(mesh: trimesh.Trimesh) -> float:
+    # Distance of each vertex from the mean of its neighbours. Zero on a perfectly smooth surface.
+    neighbours = mesh.vertex_neighbors
+    gap = [np.linalg.norm(v - mesh.vertices[n].mean(axis=0)) for v, n in zip(mesh.vertices, neighbours)]
+    return float(np.mean(gap))
+
+
+def test_smoothing_reduces_roughness_and_keeps_shape(monkeypatch) -> None:
+    from sketch2shape.export import mesh as mesh_module
+
+    bumpy = _bumpy_sphere()
+    monkeypatch.setattr(mesh_module, "_SMOOTH_ITERS", 0)
+    raw = finalize_mesh(bumpy)
+    monkeypatch.setattr(mesh_module, "_SMOOTH_ITERS", 10)
+    smooth = finalize_mesh(bumpy)
+
+    assert _roughness(smooth) < _roughness(raw) * 0.6
+    assert np.allclose(smooth.extents, raw.extents, rtol=0.05)  # Taubin must not shrink the mesh
+    assert smooth.is_watertight
+    assert (smooth.visual.vertex_colors[:, :3] == [10, 120, 200]).all()
+
+
+def test_smoothing_off_leaves_vertices_unchanged(monkeypatch) -> None:
+    from sketch2shape.export import mesh as mesh_module
+
+    monkeypatch.setattr(mesh_module, "_SMOOTH_ITERS", 0)
+    box = _colored_box()
+    out = finalize_mesh(box)
+    expected = (box.vertices - box.bounds.mean(axis=0)) / box.extents.max()
+    # finalize rotates axes (x, y, z) -> (y, z, x), so compare sorted coordinates per axis.
+    assert np.allclose(np.sort(out.vertices.ravel()), np.sort(expected.ravel()), atol=1e-6)
