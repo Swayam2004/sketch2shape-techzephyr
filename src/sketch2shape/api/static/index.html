@@ -2,265 +2,128 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sketch2Shape dashboard</title>
-<script type="module" src="/static/model-viewer.min.js"></script>
-<style>
-  :root { --bg:#14161a; --card:#1d2026; --line:#2c313a; --fg:#e6e8eb; --dim:#8b93a1; --ok:#4cc38a; --run:#e5a93d; --bad:#e5604d; --bar:#5b8def; }
-  * { box-sizing: border-box; }
-  body { margin:0; font:14px/1.45 system-ui, sans-serif; background:var(--bg); color:var(--fg); }
-  header { display:flex; gap:16px; align-items:center; padding:12px 20px; border-bottom:1px solid var(--line); }
-  header h1 { font-size:16px; margin:0; }
-  #health { color:var(--dim); font-size:13px; }
-  main { display:grid; grid-template-columns:320px 1fr; gap:16px; padding:16px 20px; }
-  @media (max-width:800px){ main { grid-template-columns:1fr; } }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px; }
-  h2 { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); margin:0 0 10px; }
-  label { display:block; color:var(--dim); font-size:12px; margin:10px 0 4px; }
-  input[type=text], input[type=number], input[type=password] { width:100%; padding:7px 9px; background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:6px; }
-  button { margin-top:12px; width:100%; padding:9px; background:var(--bar); color:#fff; border:0; border-radius:6px; font-weight:600; cursor:pointer; }
-  button:disabled { opacity:.5; cursor:default; }
-  #sketchPreview { max-width:100%; margin-top:10px; border-radius:6px; background:#fff; display:none; }
-  .col { display:flex; flex-direction:column; gap:16px; }
-  .pill { display:inline-block; padding:2px 10px; border-radius:99px; font-size:12px; font-weight:600; background:var(--line); }
-  .pill.queued { color:var(--dim); } .pill.running { color:var(--run); } .pill.done { color:var(--ok); } .pill.failed { color:var(--bad); }
-  .steps { display:flex; gap:6px; margin:12px 0; }
-  .step { flex:1; text-align:center; padding:8px 4px; border-radius:6px; background:var(--bg); border:1px solid var(--line); color:var(--dim); font-size:12px; }
-  .step.active { border-color:var(--run); color:var(--run); animation:pulse 1s infinite; }
-  .step.done { border-color:var(--ok); color:var(--ok); }
-  @keyframes pulse { 50% { opacity:.5; } }
-  .row { display:grid; grid-template-columns:100px 1fr 70px; gap:8px; align-items:center; margin:5px 0; font-size:13px; }
-  .track { height:10px; background:var(--bg); border-radius:5px; overflow:hidden; }
-  .fill { height:100%; background:var(--bar); }
-  .num { text-align:right; color:var(--dim); font-variant-numeric:tabular-nums; }
-  .warn { color:var(--run); margin:4px 0; }
-  .err { color:var(--bad); }
-  .imgs { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .imgs img, model-viewer { width:100%; border-radius:6px; background:#fff; }
-  model-viewer { height:340px; background:#2a2e36; }
-  .links a { color:var(--bar); margin-right:14px; }
-  .dim { color:var(--dim); }
-  .tabs { display:flex; gap:6px; margin-bottom:10px; }
-  .tabs button { margin:0; background:var(--bg); border:1px solid var(--line); color:var(--dim); }
-  .tabs button.on { border-color:var(--bar); color:var(--fg); }
-  #pad { width:100%; aspect-ratio:1; background:#fff; border-radius:6px; touch-action:none; cursor:crosshair; display:block; }
-  .tools { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
-  .tools button { margin-top:8px; background:var(--bg); border:1px solid var(--line); }
-  .tools button.on { border-color:var(--bar); }
-  .banner { margin-top:8px; padding:8px 10px; border-radius:6px; background:#3a2f17; color:var(--run); }
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sketch2Shape</title>
+<link rel="stylesheet" href="/static/collage.css">
+<!-- Three.js r160 is vendored under /static/vendor so the page works with no internet. -->
+<script type="importmap">{"imports":{"three":"/static/vendor/three/three.module.js","three/addons/":"/static/vendor/three/addons/"}}</script>
+<script type="module" src="/static/js/main.js"></script>
 </head>
-<body>
-<header>
-  <h1>Sketch2Shape dashboard</h1>
-  <span id="health">connecting…</span>
-</header>
-<main>
-  <div class="card">
-    <h2>New job</h2>
-    <div class="tabs">
-      <button id="tabDraw" class="on" type="button">Draw</button>
-      <button id="tabUpload" type="button">Upload</button>
-    </div>
-    <div id="drawPane">
-      <canvas id="pad" width="512" height="512"></canvas>
-      <div class="tools">
-        <button id="pen" class="on" type="button">Pen</button>
-        <button id="eraser" type="button">Eraser</button>
-        <button id="undo" type="button">Undo</button>
-      </div>
-      <button id="clear" type="button" style="background:var(--bg);border:1px solid var(--line)">Clear</button>
-    </div>
-    <div id="uploadPane" style="display:none">
-      <input id="file" type="file" accept="image/png,image/jpeg,image/webp">
-      <img id="sketchPreview" alt="sketch preview">
-      <p class="dim">PNG, JPG or WebP, up to 10 MB.</p>
-    </div>
-    <label for="prompt">Prompt (optional, 300 characters)</label>
-    <input id="prompt" type="text" maxlength="300" placeholder="a wooden chair">
-    <label for="seed">Seed</label>
-    <input id="seed" type="number" value="0">
-    <label for="code">Access code (only if the server sets one)</label>
-    <input id="code" type="password">
-    <button id="go" disabled>Generate</button>
-    <p id="submitMsg" class="dim"></p>
-  </div>
+<body data-theme="cream">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- Boil line: main.js re-seeds this every 130 ms so strokes jitter between 3 frames. -->
+    <filter id="boil" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="1"/><feDisplacementMap in="SourceGraphic" scale="3.2"/></filter>
+    <filter id="wobble" x="-5%" y="-10%" width="110%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="6"/></filter>
+    <pattern id="ht" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><circle cx="3" cy="3" r="1.5" fill="#111"/></pattern>
+  </defs>
+</svg>
 
-  <div class="col">
-    <div class="card">
-      <h2>Job</h2>
-      <div><span id="status" class="pill">no job</span> <span id="meta" class="dim"></span></div>
-      <div class="steps" id="steps"></div>
-      <div id="timings"></div>
-      <div id="warnings"></div>
-      <div id="error" class="err"></div>
-    </div>
-    <div class="card" id="outputs" style="display:none">
-      <h2>Output</h2>
-      <div class="imgs">
-        <div><div class="dim">Generated image</div><img id="genImg" alt="generated"></div>
-        <div><div class="dim">Mesh (drag to rotate)</div><model-viewer id="viewer" camera-controls auto-rotate shading-intensity="1"></model-viewer></div>
-      </div>
-      <p class="links" id="links"></p>
-      <p class="dim" id="viewerNote"></p>
-    </div>
+<div id="scraps" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="top">
+  <h1 class="title"><span>Sketch</span><span class="two">2</span><span>Shape</span></h1>
+  <div class="tools-top">
+    <span id="health" class="type dim" role="status">looking for the server...</span>
+    <button id="vibe" class="chip" type="button" title="Change the colours">shuffle vibe</button>
+    <button id="sound" class="chip" type="button" aria-pressed="false" title="Paper rustle and pop sounds">sound off</button>
+    <details class="code"><summary class="chip">access code</summary>
+      <label class="type" for="code">Only needed if the server sets one</label>
+      <input id="code" type="password" autocomplete="off">
+    </details>
   </div>
+</header>
+
+<main id="app">
+  <!-- LEFT: sketch -->
+  <div class="tear-wrap order-2"><section class="panel sketch" id="sketchPanel" aria-labelledby="h-sketch">
+    <h2 id="h-sketch" class="hand">1. your sketch</h2>
+    <div class="bar" role="toolbar" aria-label="Drawing tools">
+      <button id="pen" class="tool on" type="button" aria-pressed="true">pen</button>
+      <button id="eraser" class="tool" type="button" aria-pressed="false">eraser</button>
+      <span id="inks" class="inks" role="group" aria-label="Ink colour"></span>
+      <label class="size"><span class="sr">Brush size</span><input id="size" type="range" min="2" max="18" value="6"></label>
+      <button id="undo" class="tool" type="button">undo</button>
+      <button id="clear" class="tool" type="button">clear</button>
+      <label class="tool upload" tabindex="0">upload<input id="file" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
+    </div>
+    <div class="canvasWrap" id="canvasWrap">
+      <canvas id="pad" width="512" height="512" aria-label="Sketch canvas. Draw with a mouse, finger or pen."></canvas>
+      <div class="scan" aria-hidden="true"></div>
+      <div class="hint hand" id="padHint" aria-hidden="true">draw here, or drop a picture</div>
+    </div>
+    <label class="type" for="prompt">Prompt (optional)</label>
+    <input id="prompt" type="text" maxlength="300" placeholder="a wooden chair">
+    <div class="row">
+      <label class="type" for="seed">Seed</label>
+      <input id="seed" type="number" value="0">
+    </div>
+    <button id="go" class="big" type="button" disabled>make it 3D</button>
+    <button id="cancel" class="big ghost" type="button" hidden>stop</button>
+    <p id="msg" class="type msg" role="status" aria-live="polite"></p>
+  </section></div>
+
+  <!-- CENTER: always alive -->
+  <div class="tear-wrap order-1"><section class="panel center" id="centerPanel" aria-labelledby="h-center">
+    <h2 id="h-center" class="sr">3D stage</h2>
+    <div class="stageWrap" id="stageWrap">
+      <canvas id="gl" aria-label="Interactive 3D stage. Drag to rotate, click to pop."></canvas>
+      <img id="tearImg" alt="" hidden>
+      <div id="doodleHost" aria-hidden="true"></div>
+
+      <div id="ticker" class="ticker" hidden>
+        <svg class="ring" viewBox="0 0 80 80" aria-hidden="true"><circle class="ring-bg" cx="40" cy="40" r="32"/><circle id="ringFill" class="ring-fill" cx="40" cy="40" r="32" pathLength="1"/></svg>
+        <div class="say"><span id="phrase" class="phrase"></span><span class="dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span></div>
+        <div id="pct" class="type pct"></div>
+      </div>
+      <div id="starsBox" class="stars-box hand" hidden aria-live="polite">stars popped <b id="starsN">0</b></div>
+
+      <div id="refine" class="refine" hidden>
+        <span class="hand">rough</span>
+        <input id="lod" type="range" min="0" max="100" value="80" aria-label="Level of detail, rough to detailed">
+        <span class="hand">detailed</span>
+      </div>
+      <p id="stickerHint" class="hand hint-bottom" hidden>tap the background to stick doodles</p>
+
+      <div id="banner" class="banner type" role="status" hidden></div>
+
+      <div id="resultBar" class="result-bar" hidden>
+        <div class="seg" role="group" aria-label="View mode">
+          <button type="button" data-view="color" class="on">colour</button>
+          <button type="button" data-view="clay">clay</button>
+          <button type="button" data-view="wire">wire</button>
+          <button type="button" data-view="halftone">halftone</button>
+        </div>
+        <div class="dl">
+          <button id="dlGlb" type="button">.glb</button>
+          <button id="dlObj" type="button">.obj</button>
+          <button id="dlStl" type="button">.stl</button>
+          <button id="again" type="button" class="again">new sketch</button>
+        </div>
+        <div id="info" class="type info"></div>
+      </div>
+
+      <div id="oops" class="oops" hidden role="alert">
+        <svg viewBox="0 0 220 120" aria-hidden="true"><text x="110" y="78" text-anchor="middle" class="oops-t">oops!</text><path d="M30 96 q20 -10 40 0 t40 0 t40 0 t40 0" class="stroke draw" pathLength="1"/></svg>
+        <p id="oopsMsg" class="type"></p>
+        <button id="retry" class="big" type="button">try again</button>
+      </div>
+
+      <div id="idleNote" class="idle-note hand">draw something, then press <b>make it 3D</b></div>
+    </div>
+  </section></div>
+
+  <!-- RIGHT: pipeline -->
+  <div class="tear-wrap order-3"><aside class="panel track" aria-labelledby="h-track">
+    <h2 id="h-track" class="hand">2. the climb</h2>
+    <div id="stairs" class="stairs"></div>
+    <ol id="stageList" class="type stage-list"></ol>
+    <p id="live" class="sr" aria-live="polite"></p>
+    <div id="head" class="head" title="Click me"></div>
+  </aside></div>
 </main>
 
-<script>
-const STAGES = ["preprocess", "generate", "cutout", "reconstruct", "export"];
-const $ = (id) => document.getElementById(id);
-const POLL_LIMIT_MS = 15 * 60 * 1000;
-const MAX_UPLOAD = 10 * 1024 * 1024;
-let timer = null;
-let mode = "draw";
-
-const headers = () => { const c = $("code").value; return c ? { "X-Access-Code": c } : {}; };
-
-async function refreshHealth() {
-  try {
-    const h = await (await fetch("/v1/health")).json();
-    $("health").textContent = `${h.device}${h.gpu_name ? " · " + h.gpu_name : ""} · queue ${h.queue_length} · v${h.version}${h.ready === false ? " · loading models, the first job waits" : ""}`;
-  } catch { $("health").textContent = "server unreachable"; }
-}
-setInterval(refreshHealth, 3000); refreshHealth();
-
-// ---- drawing pad ----
-const pad = $("pad"), ctx = pad.getContext("2d");
-const history = [];
-let tool = "pen", drawing = false, dirty = false;
-function blank() { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, pad.width, pad.height); }
-blank();
-function snapshot() { history.push(ctx.getImageData(0, 0, pad.width, pad.height)); if (history.length > 30) history.shift(); }
-function pos(e) {
-  const r = pad.getBoundingClientRect();
-  return [(e.clientX - r.left) * pad.width / r.width, (e.clientY - r.top) * pad.height / r.height];
-}
-pad.addEventListener("pointerdown", (e) => {
-  snapshot(); drawing = true; dirty = true; pad.setPointerCapture(e.pointerId);
-  const [x, y] = pos(e);
-  ctx.lineCap = ctx.lineJoin = "round";
-  ctx.strokeStyle = tool === "pen" ? "#111" : "#fff";
-  ctx.lineWidth = tool === "pen" ? 6 : 28;
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 0.01, y); ctx.stroke();
-  updateGo();
-});
-pad.addEventListener("pointermove", (e) => { if (!drawing) return; const [x, y] = pos(e); ctx.lineTo(x, y); ctx.stroke(); });
-for (const ev of ["pointerup", "pointercancel"]) pad.addEventListener(ev, () => { drawing = false; });
-function setTool(t) { tool = t; $("pen").classList.toggle("on", t === "pen"); $("eraser").classList.toggle("on", t === "eraser"); }
-$("pen").onclick = () => setTool("pen");
-$("eraser").onclick = () => setTool("eraser");
-$("undo").onclick = () => { const s = history.pop(); if (s) ctx.putImageData(s, 0, 0); dirty = history.length > 0; updateGo(); };
-$("clear").onclick = () => { snapshot(); blank(); dirty = false; updateGo(); };
-
-// ---- source tabs and upload ----
-function setMode(m) {
-  mode = m;
-  $("tabDraw").classList.toggle("on", m === "draw"); $("tabUpload").classList.toggle("on", m === "upload");
-  $("drawPane").style.display = m === "draw" ? "" : "none"; $("uploadPane").style.display = m === "upload" ? "" : "none";
-  updateGo();
-}
-$("tabDraw").onclick = () => setMode("draw");
-$("tabUpload").onclick = () => setMode("upload");
-$("file").addEventListener("change", () => {
-  const f = $("file").files[0];
-  if (f && f.size > MAX_UPLOAD) { $("submitMsg").textContent = "That file is over 10 MB. Pick a smaller one."; $("file").value = ""; }
-  else if (f) { $("sketchPreview").src = URL.createObjectURL(f); $("sketchPreview").style.display = "block"; $("submitMsg").textContent = ""; }
-  updateGo();
-});
-function updateGo() { $("go").disabled = mode === "draw" ? !dirty : !$("file").files[0]; }
-const canvasBlob = () => new Promise((res) => pad.toBlob(res, "image/png"));
-
-// ---- submit and poll ----
-function explain(status, body, retryAfter) {
-  if (status === 401) return "The access code is missing or wrong. Enter the code the server was started with.";
-  if (status === 429) return `The server is busy or you sent too many jobs.${retryAfter ? ` Try again in ${retryAfter} s.` : " Try again shortly."}`;
-  if (status === 413) return "The sketch is too large. Keep it under 10 MB.";
-  return `${status}: ${body.detail || "request failed"}`;
-}
-
-$("go").addEventListener("click", async () => {
-  const form = new FormData();
-  if (mode === "draw") form.append("sketch", await canvasBlob(), "sketch.png");
-  else form.append("sketch", $("file").files[0]);
-  if ($("prompt").value) form.append("prompt", $("prompt").value);
-  form.append("seed", $("seed").value || "0");
-  $("go").disabled = true; $("submitMsg").textContent = "Submitting…";
-  let r;
-  try { r = await fetch("/v1/jobs", { method: "POST", body: form, headers: headers() }); }
-  catch { $("submitMsg").textContent = "Cannot reach the server."; updateGo(); return; }
-  updateGo();
-  if (!r.ok) {
-    const body = await r.json().catch(() => ({}));
-    $("submitMsg").textContent = explain(r.status, body, r.headers.get("Retry-After"));
-    return;
-  }
-  const { job_id } = await r.json();
-  $("submitMsg").textContent = `Job ${job_id.slice(0, 8)} submitted.`;
-  $("outputs").style.display = "none";
-  $("error").textContent = "";
-  startPolling(job_id);
-});
-
-// Contract in docs/api.md. Every 1 s for the first 10 s, then every 3 s, give up after 15 minutes.
-function startPolling(id) {
-  clearTimeout(timer);
-  const t0 = Date.now();
-  const tick = async () => {
-    const age = Date.now() - t0;
-    if (age > POLL_LIMIT_MS) { $("error").textContent = "Timed out after 15 minutes. The job may still finish on the server."; return; }
-    let done = false;
-    try { done = await poll(id); } catch { $("error").textContent = "Lost contact with the server. Retrying…"; }
-    if (!done) timer = setTimeout(tick, age < 10000 ? 1000 : 3000);
-  };
-  tick();
-}
-
-async function poll(id) {
-  const r = await fetch(`/v1/jobs/${id}`, { headers: headers() });
-  if (!r.ok) { const b = await r.json().catch(() => ({})); $("error").textContent = explain(r.status, b, r.headers.get("Retry-After")); return true; }
-  const j = await r.json();
-  render(j);
-  return j.status === "done" || j.status === "failed";
-}
-
-function render(j) {
-  const pill = $("status"); pill.textContent = j.status; pill.className = "pill " + j.status;
-  const q = j.status === "queued" ? ` · queue position ${j.queue_position}` : "";
-  $("meta").textContent = `${j.elapsed_seconds}s elapsed${q}${j.device ? " · " + j.device : ""}`;
-
-  // Timings only arrive when the job ends, so infer finished stages from the active one.
-  const activeIdx = STAGES.indexOf(j.stage);
-  $("steps").innerHTML = STAGES.map((s, i) => {
-    const cls = s === j.stage ? "active" : j.status === "done" || (activeIdx >= 0 && i < activeIdx) ? "done" : "";
-    return `<div class="step ${cls}">${s}</div>`;
-  }).join("");
-
-  const timings = j.timings || [];
-  const max = Math.max(1, ...timings.map((t) => t.seconds));
-  $("timings").innerHTML = timings.map((t) =>
-    `<div class="row"><span>${t.stage}</span><div class="track"><div class="fill" style="width:${(t.seconds / max) * 100}%"></div></div>` +
-    `<span class="num">${t.seconds}s${t.peak_vram_mb ? " · " + Math.round(t.peak_vram_mb) + " MB" : ""}</span></div>`).join("");
-  // textContent, because warnings come from the server.
-  $("warnings").replaceChildren(...(j.warnings || []).map((w) => { const d = document.createElement("div"); d.className = "banner"; d.textContent = w; return d; }));
-  $("error").textContent = j.status === "failed" ? `The job failed. ${j.error || "No reason was given."}` : "";
-
-  if (j.status === "done") showOutputs(j);
-}
-
-async function showOutputs(j) {
-  const base = `/v1/jobs/${j.job_id}`;
-  // Fetch as blobs so the access code header applies to every request, then offer them as downloads.
-  const grab = async (name) => { const r = await fetch(`${base}/${name}`, { headers: headers() }); return r.ok ? URL.createObjectURL(await r.blob()) : null; };
-  const [img, glb, obj] = await Promise.all([grab("generated.png"), grab("result.glb"), grab("result.obj")]);
-  if (img) $("genImg").src = img;
-  if (glb) $("viewer").src = glb;
-  const links = [["result.glb", glb], ["result.obj", obj], ["generated.png", img]].filter(([, u]) => u);
-  $("links").innerHTML = links.map(([n, u]) => `<a href="${u}" download="${n}">Download ${n}</a>`).join("") +
-    (j.silhouette_iou != null ? `<span class="dim">silhouette IoU ${j.silhouette_iou.toFixed(3)}</span>` : "");
-  $("viewerNote").textContent = customElements.get("model-viewer") ? "" : "The 3D viewer did not load. Download the .glb and open it in Blender.";
-  $("outputs").style.display = "block";
-}
-</script>
+<footer class="foot type">Pipeline: sketch, preprocess, SD 1.5 + ControlNet, rembg, TripoSR, mesh cleanup. <a href="/static/classic.html">plain dashboard</a></footer>
 </body>
 </html>
