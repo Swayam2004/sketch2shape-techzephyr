@@ -186,17 +186,29 @@ def create_app(
     ttl_seconds: float = JOB_TTL_SECONDS,
     warmup: Callable[[], None] | None = None,
 ) -> FastAPI:
-    """`warmup` runs once at startup so the first request does not pay the model load."""
+    """`warmup` runs once in a background thread, so the server answers at once and reports
+    `ready: false` until the models are loaded. Jobs submitted meanwhile wait in the queue.
+    """
     root = work_dir or Path(tempfile.mkdtemp(prefix="s2s-jobs-"))
     root.mkdir(parents=True, exist_ok=True)
     manager = JobManager(runner, root, queue_limit, ttl_seconds)
     limiter = RateLimiter(rate_limit_per_minute)
 
+    ready = threading.Event()
+
+    def warm_then_serve() -> None:
+        # The worker starts only after the warm-up, so both never load the same model at once.
+        try:
+            if warmup:
+                warmup()
+        except Exception:  # a failed warm-up must not stop the server
+            logger.exception("Warm-up failed. The first job will load the models instead.")
+        manager.start()
+        ready.set()
+
     @asynccontextmanager
     async def lifespan(_: FastAPI):
-        if warmup:
-            warmup()
-        manager.start()
+        threading.Thread(target=warm_then_serve, name="warmup", daemon=True).start()
         yield
         manager.stop()
 
@@ -235,6 +247,7 @@ def create_app(
             "gpu_name": gpu,
             "version": ver,
             "queue_length": manager.queue_length,
+            "ready": ready.is_set(),
         }
 
     @app.post("/v1/jobs", status_code=202, dependencies=[Depends(require_code)])
@@ -327,15 +340,20 @@ def create_app(
 
 
 def warm_default_model() -> None:
-    """Load TripoSR and rembg once. Skipped when the weights are not on disk yet."""
+    """Load TripoSR, rembg and the diffusion pipeline once. Skipped when the weights are not on disk yet."""
     from sketch2shape.cutout.background import _session
+    from sketch2shape.generate import ModelFilesMissing
+    from sketch2shape.generate.sketch_to_image import _load_pipeline
     from sketch2shape.reconstruct.triposr import WeightsMissingError, _load_model
     from sketch2shape.weights import triposr_dir
 
+    device = select_device()
     try:
-        _load_model(select_device(), triposr_dir())
+        _load_model(device, triposr_dir())
         _session()
-    except (WeightsMissingError, FileNotFoundError) as exc:
+        # The diffusion pipeline is the slowest load, so it goes first in line for the judge.
+        _load_pipeline(device, device == "cuda")
+    except (WeightsMissingError, ModelFilesMissing, FileNotFoundError) as exc:
         logger.warning("Warm-up skipped: %s", exc)
 
 
