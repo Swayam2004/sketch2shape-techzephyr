@@ -42,7 +42,7 @@ def _load_model(device: str, weights: Path) -> TSR:
     if missing:
         raise WeightsMissingError(
             f"TripoSR files {missing} not found in {weights}. "
-            "Run `uv run python scripts/download_weights.py` first."
+            "Run `uv run python scripts/download_weights.py` first. The download is about 7 GB in total."
         )
     started = time.perf_counter()
     model = TSR.from_pretrained(str(weights), config_name="config.yaml", weight_name="model.ckpt")
