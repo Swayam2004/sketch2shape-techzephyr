@@ -30,7 +30,7 @@ Every machine runs the same models with the same default settings. Only the devi
 ## Three ways in
 
 1. Local, with an NVIDIA GPU. Fastest. The reconstruct stage fits in 4 GB of VRAM (2.4 GB peak, `EXPERIMENTS.md` row 4). The generate stage needs more, see "Limitations".
-2. Local, on CPU. Works on any laptop and takes longer. TripoSR alone takes 22 to 33 s on the CPUs we tried. TODO add the full pipeline time on CPU once measured.
+2. Local, on CPU. Works on any laptop and takes longer. TripoSR alone takes 22 to 33 s on the CPUs we tried. The full pipeline took 306 s for one seed on a Ryzen 7 laptop CPU, so the default best of 3 takes about 15 minutes.
 3. The demo video. TODO link.
 
 ## Requirements
@@ -68,7 +68,7 @@ Then open http://localhost:7860. The default port is 7860, change it with `--por
 Or run one sketch from the command line.
 
 ```
-uv run sketch2shape generate samples/sketches/01_chair.png --prompt "a wooden chair" --seed 0 --out outputs/
+uv run sketch2shape generate samples/sketches/cup.jpeg --prompt "a ceramic coffee mug" --seed 0 --out outputs/
 ```
 
 The log prints the device, the seconds per stage and the silhouette IoU.
@@ -88,11 +88,20 @@ The mesh carries vertex colours, not a baked texture. We left the upstream textu
 
 ## Open the result in Blender
 
-File, Import, glTF 2.0 (`.glb`). Switch the viewport shading to Vertex Color, or add a Color Attribute node in the material, to see the colours. TODO add the add-on install steps once `blender_addon/` lands.
+File, Import, glTF 2.0 (`.glb`). Switch the viewport shading to Vertex Color, or add a Color Attribute node in the material, to see the colours. The Blender add-on imports the mesh and can send a sketch to the local server. Install steps are in `blender_addon/README.md`.
 
 ## Results
 
-TODO a sample sketch, the generated image, a render of the mesh and a link to `samples/`.
+Twelve pen sketches photographed on paper, each with one prompt, seed 0, on an RTX PRO 4500. Left is the sketch, right is the Stable Diffusion image that TripoSR lifts to 3D.
+
+![Sketches and generated images](samples/sketches/results/sheet.png)
+
+| Run | Mean silhouette IoU | Lowest | Seconds per sketch, warm |
+| --- | --- | --- | --- |
+| Best of 3 seeds (default) | 0.893 | 0.701 (bulb) | 12 |
+| One seed | 0.880 | 0.683 (bulb) | 5 |
+
+The `.glb` files are in `samples/meshes/real_sketches/`, the per-sketch tables are in `samples/sketches/results/`. More cases, with prompt tests, are in `samples/test_cases/results/README.md`.
 
 ## Timing and hardware
 
@@ -103,7 +112,11 @@ TODO a sample sketch, the generated image, a render of the mesh and a link to `s
 | TripoSR, grid 256, GPU | GTX 1650 Ti, 4 GB | 5.4 | 2370 MB VRAM |
 | Full pipeline, GPU, stubbed sketch stages | GTX 1650 Ti | about 14 cold, 6.6 warm | 2370 MB VRAM |
 
-Source is `EXPERIMENTS.md`. TODO add rows for the generate stage on the RunPod GPU and on CPU.
+| Full pipeline, best of 3, GPU, warm | RTX PRO 4500, 32 GB | 12 | 5.5 GB VRAM in generate |
+| Full pipeline, one seed, GPU, warm | RTX PRO 4500, 32 GB | 5 | 5.5 GB VRAM in generate |
+| Full pipeline, one seed, CPU | Ryzen 7 PRO 7840U, 16 GB | 306 | 7.2 GB RAM |
+
+Best of 3 on CPU is about 15 minutes. Source is `EXPERIMENTS.md` rows 8, 9, 13, 14 and 16.
 
 ## Models and third-party components
 
@@ -127,7 +140,9 @@ Our inputs are pretrained models and our own sketches in `samples/sketches/`. We
 - A single view hides the back of the object, so TripoSR guesses it. Expect plausible but invented backs.
 - The generate stage does not run on a 4 GB laptop GPU. fp16 returns a black frame and fp32 runs out of memory (`EXPERIMENTS.md` row 7). Use a GPU with more memory or the CPU path.
 - Meshes are not always watertight. The CPU default of grid 192 gave a non-watertight chair, grid 256 gave a watertight one.
-- Sketches with several objects or heavy shading give poor results. TODO add the failure cases from the test set.
+- Fine details are not kept. The button sketch has four holes and the result has five. The bulb sketch has light rays around it and the result is a rounded blob (IoU 0.70). The cloud comes out as stacked foam.
+- Best of 3 picks by the 2D outline, so it can lower a score. The cloud falls from 0.972 to 0.883 and the paperclip from 0.949 to 0.910, while the envelope rises from 0.698 to 0.934.
+- A sketch with several objects or heavy shading was not part of the test set.
 
 ## Troubleshooting
 
@@ -141,7 +156,10 @@ Our inputs are pretrained models and our own sketches in `samples/sketches/`. We
 
 ## What did not work
 
-See `EXPERIMENTS.md`. TODO a short summary.
+- fp16 diffusion returns a black frame on a 4 GB GTX 1650 Ti and fp32 runs out of memory there. The fp32 VAE decode and releasing the fp16 pipeline fixed the retry (PR #20), and the retry now appears in the result warnings.
+- One seed sometimes gives a white object that rembg loses on a light background. "A horse" on the chair sketch scored 0.384. Best of 3 raised it to 0.937.
+- Changing the ControlNet scale, the background colour or the foreground ratio did not help on all three test cases, so we kept the defaults (`EXPERIMENTS.md` row 15).
+- TripoSR makes thick meshes. We tried no fix, because the depth over width ratio swung from 0.29 to 2.26 on one sketch between variants.
 
 ## AI tool usage
 
