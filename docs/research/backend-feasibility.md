@@ -2,7 +2,7 @@
 
 > Status note, 31 Oct 15:30. The team dropped the "lite mode" idea. Every device runs the same pipeline (`CONTEXT.md` D3). Hunyuan3D, TripoSG and Stable Fast 3D are not used (D18). The install pitfalls and licence tables below still apply.
 
-Research date 31 Oct 2026. Scope is the sketch to 3D pipeline in `docs/PLAN.md`. Nothing here was run on our machines. Every time figure is either quoted from a source or marked as an estimate to measure.
+Research date 31 Oct 2026. Scope is the sketch to 3D pipeline in `README.md`. Nothing here was run on our machines. Every time figure is either quoted from a source or marked as an estimate to measure.
 
 ## How to read the labels
 

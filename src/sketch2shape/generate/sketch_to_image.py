@@ -30,8 +30,8 @@ NEGATIVE_PROMPT = (
     "blurry, low quality"
 )
 
-# Start values from docs/tasks/udit.md. Tune them in EXPERIMENTS.md, not per device: the hosted
-# link and a local run must use the same numbers.
+# Tune these values in EXPERIMENTS.md, not per device: every machine
+# must use the same numbers.
 STEPS = 20
 GUIDANCE_SCALE = 7.5
 CONTROLNET_SCALE = 1.0

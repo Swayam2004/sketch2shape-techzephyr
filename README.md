@@ -112,7 +112,6 @@ The `.glb` files are in `samples/meshes/real_sketches/`, the per-sketch tables a
 | TripoSR, grid 192, CPU | Linux laptop | 22.5 | not measured |
 | TripoSR, grid 256, GPU | GTX 1650 Ti, 4 GB | 5.4 | 2370 MB VRAM |
 | Full pipeline, GPU, stubbed sketch stages | GTX 1650 Ti | about 14 cold, 6.6 warm | 2370 MB VRAM |
-
 | Full pipeline, best of 3, GPU, warm | RTX PRO 4500, 32 GB | 12 | 5.5 GB VRAM in generate |
 | Full pipeline, one seed, GPU, warm | RTX PRO 4500, 32 GB | 5 | 5.5 GB VRAM in generate |
 | Full pipeline, one seed, CPU | Ryzen 7 PRO 7840U, 16 GB | 306 | 7.2 GB RAM |
@@ -134,7 +133,7 @@ All weights download by script into `weights/` (gitignored). None are gated.
 
 TODO add the remaining libraries (trimesh, scikit-image, diffusers, FastAPI and the rest).
 
-Our inputs are pretrained models and our own sketches in `samples/sketches/`. We trained nothing.
+Our inputs are pretrained models and our own sketches in `samples/sketches/`. We trained nothing. `DATASETS.md` lists every data source.
 
 ## Limitations
 

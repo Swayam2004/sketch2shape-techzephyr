@@ -16,7 +16,6 @@ Terms and decisions. Keep it short. Add a decision when the team settles one.
 | Silhouette IoU | Orthographic front view of the mesh, compared to the cleaned sketch mask. Our fidelity number. |
 | Test set | 12 fixed sketches in `samples/sketches/` used to compare every change. |
 | Demo video | A 2 to 3 minute recording that shows a localhost run and explains the architecture. It replaces the hosted demo (D25). |
-| Sync routine | The check-and-pull steps every agent runs at the start and end of each session. See `docs/tasks/README.md`. |
 
 ## Decisions
 
@@ -35,7 +34,7 @@ Terms and decisions. Keep it short. Add a decision when the team settles one.
 | D11 | Everything starts from this repo. No pre-existing code. Every AI tool use is logged in `AI_USAGE.md`. | Event rule. |
 | D12 | Three rubrics exist. The problem statement's 100 points is the confirmed one. The brochure and the rulebook each list a different 50/20/15/15 split led by Technical Accuracy. We optimise for the confirmed one and cover the others with failure logs, a measured accuracy number (silhouette IoU), a report and slides. | Cheap hedge. Technical accuracy is the tie-breaker. |
 | D13 | Deliverables. Repo with README, `REPORT.md`, `EXPERIMENTS.md`, `AI_USAGE.md`, slides, demo video, sample `.glb` files with inputs. The brochure says to submit "all required credentials", so a throwaway access code for the local server goes in the README, never a real cloud key. | Rulebook sections 6 and 9, brochure ML page. |
-| D14 | Dev GPU is a shared RunPod Secure Cloud pod, an L4 first, with a 30 GB network volume, paid by Swayam. See `docs/guides/runpod-dev-gpu.md`. | DevOps is the biggest bottleneck. |
+| D14 | Dev GPU is a shared RunPod Secure Cloud pod, an L4 first, with a 30 GB network volume, paid by Swayam. | DevOps is the biggest bottleneck. |
 | D15 | Superseded by D25, nothing is hosted. Old text. Demo host priority. Modal first (scale to zero, about 270 to 500 INR for 200 runs, inside the free credit). Then a free ZeroGPU Space plus a static page with sample `.glb` files. Last resort a paid HF T4 Space (about 1,890 INR). AWS credits stay optional (`docs/guides/aws-gpu-optional.md`). | Judging lasts 5 to 6 days, so an always-on GPU is too expensive. See `docs/research/long-window-hosting.md`. |
 | D16 | Blender add-on owned by Udit from about 00:00, tested by Disha. | Udit works best overnight. |
 | D17 | Pull requests into `main`, enforced by a repo ruleset with zero required approvals. Swayam merges. Agents run the git steps when a teammate says "ship it". | Strict but low friction. |
@@ -44,7 +43,7 @@ Terms and decisions. Keep it short. Add a decision when the team settles one.
 | D20 | Judging is expected to take 5 to 6 days after the deadline (unofficial). Nothing needs to stay online, because judges run the project locally (D25). | Heard from an organising committee contact. |
 | D21 | Benchmark directly on the pod, not on public HF Spaces. | Faster iteration. Spaces quota is 2 to 5 GPU minutes a day. |
 | D22 | Every HF account (Swayam, Udit, Disha) is older than 30 days, so each can host a ZeroGPU Space. | Account ages checked by the team. |
-| D23 | Build phase starts Sat 31 Oct about 15:45. Task split is in `docs/tasks/`. Every session starts and ends with the sync routine. | Three laptops work in parallel without stepping on each other. |
+| D23 | Build phase starts Sat 31 Oct about 15:45. Each person worked in their own directories and merged through pull requests. | Three laptops work in parallel without stepping on each other. |
 | D24 | TripoSR output uses vertex colours, not a baked texture, until a bake is shown to work in Blender. | `--bake-texture` has open bugs, and a broken GLB is worse than a plain one. |
 | D25 | No hosted demo. Judges run the project on localhost, and the team submits a 2 to 3 minute video that shows a run and explains the architecture. Modal, ZeroGPU and the always-on host are dropped. | The organisers answered a question about external GPUs: "you can just run a localhost and to explain the pipeline just upload a demo video of 2-3 minutes". Received 1 Nov 2026 around 03:00. |
 
@@ -57,6 +56,3 @@ Terms and decisions. Keep it short. Add a decision when the team settles one.
 - Hidden geometry is guessed. Aim for plausible, not exact.
 - README must report time to generate a model, hardware used and limitations.
 
-## Open questions
-
-See the bottom of `PLAN.md`.

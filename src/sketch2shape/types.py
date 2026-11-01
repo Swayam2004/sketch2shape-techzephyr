@@ -1,7 +1,6 @@
 """Shared data types and stage contracts.
 
-Every owner codes against these. Change a type only through a PR that all three owners have seen,
-and say so in STATUS.md first.
+Every owner codes against these. Change a type only through a PR that all three owners have seen.
 
 Stage functions and their owners
 
