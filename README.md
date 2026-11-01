@@ -1,5 +1,7 @@
 # Sketch2Shape AI
 
+The web app is called 2DorNot2D.
+
 Draw or upload a rough sketch, add an optional text prompt, and get a textured 3D mesh as `.glb` or `.obj`. Built for TechZephyr 4.0 at IIT Bhubaneswar, a 24 hour hackathon.
 
 The organisers asked for a localhost run plus a 2 to 3 minute demo video, so there is no hosted demo. You run the server on your own machine and open it in a browser.
