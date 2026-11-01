@@ -38,14 +38,18 @@ export function createEstimator(device) {
   let stage = 0;
   let stageStart = performance.now();
   const total = exp.reduce((a, b) => a + b, 0);
+  let lastWithin = 0;
   return {
     update(idx) {
       if (idx !== stage) { stage = idx; stageStart = performance.now(); }
       if (idx >= STAGES.length) return 1;
       const within = 1 - Math.exp(-((performance.now() - stageStart) / 1000) / exp[idx]);
+      lastWithin = within;
       const before = exp.slice(0, idx).reduce((a, b) => a + b, 0);
       return Math.min(0.97, (before + within * exp[idx]) / total);
     },
+    // Fraction of the current stage, for the pipe bar.
+    within: () => lastWithin,
   };
 }
 

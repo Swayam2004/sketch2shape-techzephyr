@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sketch2Shape</title>
+<title>2DorNot2D</title>
 <link rel="stylesheet" href="/static/collage.css">
 <!-- Three.js r160 is vendored under /static/vendor so the page works with no internet. -->
 <script type="importmap">{"imports":{"three":"/static/vendor/three/three.module.js","three/addons/":"/static/vendor/three/addons/"}}</script>
@@ -19,11 +19,21 @@
   </defs>
 </svg>
 
+<!-- Colour streaks from bottom left to top right. Stroke width stays in pixels while the box stretches. -->
+<svg id="streaks" class="streaks" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+  <path d="M-5 108 Q 25 70 108 -8" style="stroke:var(--magenta)" pathLength="1"/>
+  <path d="M-5 88 Q 30 58 90 -8" style="stroke:var(--teal)" pathLength="1"/>
+  <path d="M10 108 Q 45 72 112 8" style="stroke:var(--mustard)" pathLength="1"/>
+  <path d="M-5 64 Q 22 44 66 -8" style="stroke:var(--sky)" pathLength="1"/>
+  <path d="M34 108 Q 62 82 112 30" style="stroke:var(--terra)" pathLength="1"/>
+  <path d="M-5 40 Q 12 28 40 -8" style="stroke:var(--sage)" pathLength="1"/>
+  <path d="M58 108 Q 82 90 112 56" style="stroke:var(--magenta)" pathLength="1"/>
+</svg>
 <div id="scraps" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 
 <header class="top">
-  <h1 class="title"><span>Sketch</span><span class="two">2</span><span>Shape</span></h1>
+  <h1 class="title" aria-label="2DorNot2D"><span aria-hidden="true">2D</span><span class="or" aria-hidden="true">or</span><span aria-hidden="true">Not</span><span class="two" aria-hidden="true">2D</span></h1>
   <div class="tools-top">
     <span id="health" class="type dim" role="status">looking for the server...</span>
     <button id="vibe" class="chip" type="button" title="Change the colours">shuffle vibe</button>
@@ -112,6 +122,7 @@
 
       <div id="idleNote" class="idle-note hand">draw something, then press <b>make it 3D</b></div>
     </div>
+    <div id="pipebar" class="pipebar"></div>
   </section></div>
 
   <!-- RIGHT: pipeline -->
@@ -124,6 +135,6 @@
   </aside></div>
 </main>
 
-<footer class="foot type">Pipeline: sketch, preprocess, SD 1.5 + ControlNet, rembg, TripoSR, mesh cleanup. <a href="/static/classic.html">plain dashboard</a></footer>
+<footer class="foot type">2DorNot2D, the Sketch2Shape pipeline: sketch, preprocess, SD 1.5 + ControlNet, rembg, TripoSR, mesh cleanup. <a href="/static/classic.html">plain dashboard</a></footer>
 </body>
 </html>

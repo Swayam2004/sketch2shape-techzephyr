@@ -163,7 +163,19 @@ def test_old_jobs_are_removed(tmp_path) -> None:
 
 def test_dashboard_is_served(client) -> None:
     r = client.get("/")
-    assert r.status_code == 200 and "Sketch2Shape dashboard" in r.text
+    assert r.status_code == 200 and "<title>2DorNot2D</title>" in r.text
+
+
+def test_dashboard_assets_work_offline(client) -> None:
+    # The page imports three.js from /static, so a judge without internet still gets the 3D stage.
+    for path in (
+        "/static/collage.css",
+        "/static/js/main.js",
+        "/static/vendor/three/three.module.js",
+        "/static/vendor/three/addons/loaders/GLTFLoader.js",
+        "/static/classic.html",
+    ):
+        assert client.get(path).status_code == 200, path
 
 
 def test_server_answers_while_warming_and_runs_queued_jobs_after(tmp_path) -> None:

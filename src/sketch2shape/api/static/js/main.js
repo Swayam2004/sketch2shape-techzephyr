@@ -5,6 +5,7 @@ import { detectBackend, runPipeline, createEstimator, PipelineError, Cancelled }
 import { createSketch, INKS } from "./sketch.js";
 import { createStage } from "./stage.js";
 import { startBoil, boom, sticker, createScribbleLayer, buildScraps, buildHead, el } from "./doodles.js";
+import { createPipebar } from "./pipebar.js";
 import { rustle, pop } from "./audio.js";
 
 const $ = (id) => document.getElementById(id);
@@ -121,6 +122,7 @@ function buildTracker() {
   };
 }
 const tracker = buildTracker();
+const pipe = createPipebar($("pipebar"));
 
 // ---------------------------------------------------------------- status ticker (typewriter phrases)
 const PHRASES = ["working", "in progress", "creating", "bringing ideas to life", "sketching the invisible", "folding space", "teaching clay to dream", "almost there", "adding sparkle", "melting the clock"];
@@ -151,6 +153,7 @@ function applyShown(i) {
   shown = i; stageSince = performance.now();
   stage.setStage(i);
   tracker.set(i, store.get().phase === "running");
+  if (store.get().phase === "running") pipe.set({ shown: i, within: est?.within() || 0, state: "running" });
   $("canvasWrap").classList.toggle("scanning", store.get().phase === "running" && i <= 1);
   $("refine").hidden = !(store.get().phase === "running" && i === 3);
   $("stickerHint").hidden = $("refine").hidden;
@@ -173,7 +176,7 @@ function resetUI() {
   $("tearImg").hidden = true; $("canvasWrap").classList.remove("scanning");
   $("go").hidden = false; $("cancel").hidden = true;
   scribbles.setEnabled(false);
-  shown = 0; target = 0; tracker.set(-1, false);
+  shown = 0; target = 0; tracker.set(-1, false); pipe.reset();
   host.replaceChildren();
 }
 
@@ -202,6 +205,7 @@ async function start() {
   uiTimer = setInterval(() => {
     const p = est.update(shown);
     setProgress(p); store.set({ progress: p });
+    pipe.set({ shown, within: est.within(), state: "running" });
     if (shown === 2) stage.setMorph(0.12 + 0.88 * (1 - Math.exp(-(performance.now() - stageSince) / 20000)));
     if (shown >= 3) stage.setMorph(1);
     if (shown === 3 && stage.lodAuto) { const v = 0.5 + 0.5 * Math.sin(performance.now() / 1100); stage.setLod(v, false); $("lod").value = Math.round(v * 100); }
@@ -257,6 +261,7 @@ async function finish(result) {
   wrap.classList.remove("busy"); wrap.classList.add("done");
   $("canvasWrap").classList.remove("scanning"); scribbles.setEnabled(false);
   tracker.set(STAGES.length, false);
+  pipe.set({ shown: STAGES.length, state: "done" });
   $("refine").hidden = true; $("stickerHint").hidden = true; $("starsBox").hidden = true;
   $("resultBar").hidden = false;
   $("dlObj").disabled = result.kind === "files" && !result.obj;
