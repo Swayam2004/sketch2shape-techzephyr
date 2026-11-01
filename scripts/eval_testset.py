@@ -131,8 +131,12 @@ def main(argv: list[str] | None = None) -> int:
             mask = prepare_sketch(sketch).mask
 
             start = time.perf_counter()
+            # One mesh per sketch, named after it, so the table can be checked by eye.
             result = pipeline.run(
-                GenerationRequest(sketch=sketch, prompt=prompt, seed=SEED), device
+                GenerationRequest(sketch=sketch, prompt=prompt, seed=SEED),
+                device,
+                out_dir=args.out / "meshes",
+                stem=path.stem,
             )
             row.seconds = time.perf_counter() - start
 
