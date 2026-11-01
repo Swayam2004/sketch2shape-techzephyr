@@ -69,6 +69,24 @@ def render_silhouette(
     return fit_to_square(raster[y : y + h, x : x + w], size, margin) > 0
 
 
+def normalise_mask(
+    mask: np.ndarray, size: int | None = None, margin: float = 0.1, name: str = "mask"
+) -> np.ndarray:
+    """Crop a binary mask to its bounding box and fit it to a size x size canvas.
+
+    The sketch mask, a rendered mesh and a generated image all land in this one frame, so their
+    IoU does not depend on where the object sits or how big it is.
+    """
+    if mask.ndim != 2 or (size is None and mask.shape[0] != mask.shape[1]):
+        raise ValueError(f"{name} must be square 2D, got shape {mask.shape}")
+    if not mask.any():
+        raise ValueError(f"{name} is empty")
+    size = size or mask.shape[0]
+    m = mask.astype(np.uint8) * 255
+    x, y, w, h = cv2.boundingRect(m)
+    return fit_to_square(m[y : y + h, x : x + w], size, margin) > 0
+
+
 def silhouette_iou(
     mesh: trimesh.Trimesh, sketch_mask: np.ndarray, view: str = "+z", margin: float = 0.1
 ) -> float:
@@ -77,15 +95,8 @@ def silhouette_iou(
     The sketch mask is re-normalised here so callers can pass any binary mask, not only one
     from preprocess_sketch.
     """
-    if sketch_mask.ndim != 2 or sketch_mask.shape[0] != sketch_mask.shape[1]:
-        raise ValueError(f"sketch mask must be square 2D, got shape {sketch_mask.shape}")
-    if not sketch_mask.any():
-        raise ValueError("sketch mask is empty")
     size = sketch_mask.shape[0]
-
-    m = sketch_mask.astype(np.uint8) * 255
-    x, y, w, h = cv2.boundingRect(m)
-    target = fit_to_square(m[y : y + h, x : x + w], size, margin) > 0
+    target = normalise_mask(sketch_mask, size, margin, name="sketch mask")
 
     rendered = render_silhouette(mesh, size=size, view=view, margin=margin)
     iou = mask_iou(rendered, target)
