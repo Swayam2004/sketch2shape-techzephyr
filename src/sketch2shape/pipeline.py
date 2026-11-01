@@ -34,6 +34,9 @@ CANDIDATES_ENV = "S2S_CANDIDATES"
 # The same on every device so a CPU run and a GPU run pick from the same seeds. CPU generation
 # takes about 270 s a candidate, so 4 would pass the 15 minute client poll limit.
 DEFAULT_CANDIDATES = 3
+# Same key as generate.sketch_to_image.RETRY_INFO_KEY. Duplicated so importing the pipeline
+# does not import diffusers.
+RETRY_INFO_KEY = "s2s_warning"
 CPU_WARNING = (
     "Running on CPU. Expect about 15 minutes per sketch, because the image step runs "
     f"{DEFAULT_CANDIDATES} times and picks the best outline."
@@ -142,6 +145,9 @@ def run(
     seeds = [request.seed + i for i in range(count)]
     with _timed(timings, "generate", device, on_stage):
         images = [stages.generate(prepared, request.prompt, seed, device) for seed in seeds]
+    for note in dict.fromkeys(img.info.get(RETRY_INFO_KEY, "") for img in images):
+        if note:
+            warnings.append(note)
     with _timed(timings, "cutout", device, on_stage):
         kept: list[tuple[int, Image.Image, Image.Image]] = []
         for seed, image in zip(seeds, images, strict=True):

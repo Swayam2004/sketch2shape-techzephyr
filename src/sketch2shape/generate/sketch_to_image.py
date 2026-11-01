@@ -46,6 +46,13 @@ class ModelFilesMissing(FileNotFoundError):
     """Stable Diffusion or ControlNet weights are not in the weights folder."""
 
 
+RETRY_INFO_KEY = "s2s_warning"
+FP32_RETRY_WARNING = (
+    "The fp16 image came back black, so generation reran in fp32. This card is slower and "
+    "uses more memory in fp32."
+)
+
+
 def build_prompt(prompt: str | None) -> str:
     subject = (prompt or "").strip() or DEFAULT_SUBJECT
     return PROMPT_TEMPLATE.format(prompt=subject)
@@ -182,12 +189,14 @@ def sketch_to_image(
     _model_paths(weights_dir())
 
     use_fp16 = device == "cuda"
+    retried = False
     image = _run(_load_pipeline(device, use_fp16), sketch, full_prompt, seed)
     if use_fp16 and is_degenerate(image):
         # GTX 16xx cards overflow in fp16 and return black frames.
         log.warning("generate: fp16 output is black or flat, retrying in fp32")
         _release_pipelines(device)
         image = _run(_load_pipeline(device, False), sketch, full_prompt, seed)
+        retried = True
     if is_degenerate(image):
         raise RuntimeError(
             "Stable Diffusion returned a blank image even in fp32. Check the weights."
@@ -200,4 +209,8 @@ def sketch_to_image(
         time.perf_counter() - started,
         full_prompt,
     )
+    if retried:
+        # The stage returns only an image, so the pipeline reads this and adds it to the
+        # result warnings. PIL keeps `info` in memory and does not write it into the PNG.
+        image.info[RETRY_INFO_KEY] = FP32_RETRY_WARNING
     return image

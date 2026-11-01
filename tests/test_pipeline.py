@@ -157,3 +157,22 @@ def test_candidates_env_and_validation(monkeypatch) -> None:
     monkeypatch.setenv("S2S_CANDIDATES", "zero")
     with pytest.raises(ValueError, match="S2S_CANDIDATES"):
         pipeline.candidate_count()
+
+
+def test_fp32_retry_note_reaches_the_result_warnings(tmp_path, monkeypatch) -> None:
+    def generate(sketch, prompt, seed, device) -> Image.Image:
+        image = _tag_generate(sketch, prompt, seed, device)
+        image.info["s2s_warning"] = "reran in fp32"
+        return image
+
+    monkeypatch.setattr(pipeline, "remove_background", _shaped_cutout)
+    monkeypatch.setattr(pipeline, "image_to_mesh", _fake_mesh)
+    result = run(
+        GenerationRequest(Image.new("RGB", (64, 64)), None, 10),
+        "cpu",
+        tmp_path,
+        "t",
+        Stages(_prepare_bar, generate),
+        candidates=2,
+    )
+    assert result.warnings.count("reran in fp32") == 1

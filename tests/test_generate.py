@@ -57,6 +57,7 @@ def test_fp32_retry_frees_the_fp16_pipeline_first(monkeypatch, caplog) -> None:
         image = stage.sketch_to_image(_blank_sketch(), "a chair", 1, "cuda")
 
     assert not is_degenerate(image)
+    assert image.info[stage.RETRY_INFO_KEY] == stage.FP32_RETRY_WARNING
     assert events == ["load fp16=True", "cache_clear", "load fp16=False"]
     assert any("retrying in fp32" in record.getMessage() for record in caplog.records)
 
